@@ -50,9 +50,6 @@ const firebaseConfig = {
 if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 
-/**
- * 安全な配列変換ヘルパー（Firebaseのオブジェクト化による不具合を防止）
- */
 function toArray(data) {
   if (!data) return [];
   if (Array.isArray(data)) return data;
@@ -402,7 +399,7 @@ function renderSetupScreen() {
 }
 
 /**
- * 4. 質問画面（確実に次へ進む修正済み）
+ * 4. 質問画面
  */
 function renderQuestionScreen() {
   const isWitness = roomData.state.witnessId === myPlayerId;
@@ -599,7 +596,7 @@ function updateInferenceWaitingStatus() {
 }
 
 /**
- * 6. 推理一斉公開 ＆ 判定
+ * 6. 推理一斉公開 ＆ 判定（記者には⭕❌を一切見せず、最接近だけを公開！）
  */
 function renderInferenceJudgeScreen() {
   const isWitness = roomData.state.witnessId === myPlayerId;
@@ -612,22 +609,22 @@ function renderInferenceJudgeScreen() {
     const isClosest = inf.isClosest;
 
     return `
-      <div class="p-3 bg-slate-900/80 border ${isClosest ? 'border-amber-500 bg-amber-950/30' : 'border-slate-700'} rounded-2xl flex items-center justify-between gap-2">
+      <div class="p-3 bg-slate-900/80 border ${isClosest ? 'border-amber-500 bg-amber-950/40 shadow-md shadow-amber-950/30' : 'border-slate-700'} rounded-2xl flex items-center justify-between gap-2">
         <div class="flex-1 min-w-0">
           <div class="flex items-center gap-1.5">
             <span class="text-xs font-bold ${isMe ? 'text-emerald-300' : 'text-slate-300'} truncate">${escapeHtml(pName)}</span>
-            ${isClosest ? '<span class="text-[10px] bg-amber-500 text-slate-950 px-1 rounded font-black">最接近!</span>' : ''}
+            ${isClosest ? '<span class="text-[10px] bg-amber-500 text-slate-950 px-1.5 py-0.5 rounded font-black animate-pulse">最接近!</span>' : ''}
           </div>
           <div class="text-base font-extrabold text-slate-100 mt-0.5 truncate">${escapeHtml(inf.text)}</div>
         </div>
 
         <div class="flex items-center gap-1">
           ${isWitness ? `
-            <button onclick="toggleJudgeCorrect('${pid}', true)" class="w-9 h-9 rounded-xl border font-bold text-sm ${isCorrect === true ? 'bg-emerald-600 border-emerald-400 text-white' : 'bg-slate-800 border-slate-700 text-slate-400'}">⭕</button>
-            <button onclick="toggleJudgeCorrect('${pid}', false)" class="w-9 h-9 rounded-xl border font-bold text-sm ${isCorrect === false ? 'bg-rose-600 border-rose-400 text-white' : 'bg-slate-800 border-slate-700 text-slate-400'}">❌</button>
-            <button onclick="setClosestAnswer('${pid}')" class="px-2 py-2 rounded-xl border text-[11px] font-bold ${isClosest ? 'bg-amber-600 border-amber-400 text-slate-950' : 'bg-slate-800 border-slate-700 text-slate-400'}">最接近</button>
+            <button onclick="toggleJudgeCorrect('${pid}', true)" class="w-9 h-9 rounded-xl border font-bold text-sm transition ${isCorrect === true ? 'bg-emerald-600 border-emerald-400 text-white shadow-lg' : 'bg-slate-800 border-slate-700 text-slate-400'}">⭕</button>
+            <button onclick="toggleJudgeCorrect('${pid}', false)" class="w-9 h-9 rounded-xl border font-bold text-sm transition ${isCorrect === false ? 'bg-rose-600 border-rose-400 text-white shadow-lg' : 'bg-slate-800 border-slate-700 text-slate-400'}">❌</button>
+            <button onclick="setClosestAnswer('${pid}')" class="px-2 py-2 rounded-xl border text-[11px] font-bold transition ${isClosest ? 'bg-amber-500 border-amber-300 text-slate-950 shadow-md' : 'bg-slate-800 border-slate-700 text-slate-400'}">最接近</button>
           ` : `
-            <span class="text-lg">${isCorrect === true ? '⭕' : isCorrect === false ? '❌' : '⏳'}</span>
+            ${isClosest ? '<span class="text-xs bg-amber-500/20 text-amber-300 border border-amber-500/40 px-2.5 py-1 rounded-xl font-black">最接近！</span>' : ''}
           `}
         </div>
       </div>
@@ -644,7 +641,7 @@ function renderInferenceJudgeScreen() {
           <h3 class="text-base font-black text-slate-100 mt-1">
             ${isWitness ? '正誤(⭕/❌)と最接近を判定してください' : '目撃者の判定を待っています'}
           </h3>
-          ${isWitness ? `<div class="text-xs text-amber-300 mt-1">※正解: <b>${escapeHtml(roomData.state.secretWord)}</b>（表記揺れも⭕でOK）</div>` : ''}
+          ${isWitness ? `<div class="text-xs text-amber-300 mt-1">※正解: <b>${escapeHtml(roomData.state.secretWord)}</b>（⭕❌は記者には見えません）</div>` : ''}
         </div>
 
         <div class="space-y-2 max-h-60 overflow-y-auto custom-scrollbar">
@@ -1057,7 +1054,7 @@ function renderSetCompleteScreen() {
 
 /**
  * -------------------------------------------------------------
- * ネットワーク＆ロジック操作（不具合修正済み）
+ * ネットワーク＆ロジック操作
  * -------------------------------------------------------------
  */
 function handleCreateRoom() {
@@ -1226,7 +1223,6 @@ function handleInsiderPickCard(category, attrName) {
   });
 }
 
-// 確実に次の質問者へ進める関数（修正箇所）
 function handleFinishQuestionTurn() {
   const queue = toArray(roomData.state?.questionQueue);
   const curIdx = Number(roomData.state?.currentQuestionIndex) || 0;
