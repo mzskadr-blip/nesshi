@@ -210,38 +210,74 @@ function renderLakeTrackComponent() {
 }
 
 /**
- * 常時表示される取材ログ（ヒントカード一覧 ＆ 縦進行テーブル）
+ * 2つの独立した取材ボード（上が質問カード表、下が推理＆最接近表）
  */
 function renderInvestigationLogComponent() {
-  const history = toArray(roomData.state?.history);
   const reporters = Object.keys(roomData.players || {}).filter(pid => pid !== roomData.state?.witnessId);
+  const curHintRound = Number(roomData.state?.hintRound) || 1;
+  const cardHistory = roomData.state?.cardHistory || {};
+  const history = toArray(roomData.state?.history);
+
+  // これまでに進んだ回（#1 〜 現在の回まで）の行リスト
+  const roundIndices = [];
+  for (let r = 1; r <= curHintRound; r++) {
+    roundIndices.push(r);
+  }
 
   return `
     <div class="mt-4 space-y-3">
-      <!-- 1. ヒントカード一覧 -->
+      <!-- 【上の表】出された質問カード表（リアルタイム更新） -->
       <div class="bg-slate-950/80 border border-slate-800 rounded-2xl p-3 shadow-md">
-        <div class="text-xs font-bold text-amber-300 mb-1.5 flex items-center gap-1.5">
-          <span>📋</span> 出されたヒントカード一覧（${history.length} / 5回）
+        <div class="text-xs font-bold text-amber-300 mb-1.5 flex items-center justify-between">
+          <span class="flex items-center gap-1.5"><span>📋</span> 出された質問カードの表（ヒント毎に更新）</span>
+          <span class="text-[10px] text-slate-400">現在: ${curHintRound}/5回目</span>
         </div>
-        ${history.length === 0 ? `
-          <div class="text-[11px] text-slate-500 py-1 text-center">まだヒントカードは出ていません</div>
-        ` : `
-          <div class="flex flex-wrap gap-1.5">
-            ${history.map((h, i) => `
-              <div class="px-2.5 py-1 rounded-xl border text-xs flex items-center gap-1.5 ${h.card?.badgeColor || 'bg-slate-900 border-slate-700'}">
-                <span class="font-black text-[10px] opacity-70">#${i + 1}</span>
-                <span>${h.card?.icon || '🎴'}</span>
-                <span class="font-bold">${escapeHtml(h.card?.attrName || '')}</span>
-              </div>
-            `).join('')}
-          </div>
-        `}
+        
+        <div class="overflow-x-auto custom-scrollbar">
+          <table class="w-full text-center border-collapse text-xs min-w-[280px]">
+            <thead>
+              <tr class="bg-slate-900 text-slate-400 border-b border-slate-700">
+                <th class="py-1.5 px-1 font-bold w-10">回</th>
+                ${reporters.map(pid => `
+                  <th class="py-1.5 px-1 font-bold truncate max-w-[80px]">
+                    ${escapeHtml(roomData.players[pid]?.name || '記者')}
+                  </th>
+                `).join('')}
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-800">
+              ${roundIndices.map(r => {
+                const roundCards = cardHistory[r] || {};
+                return `
+                  <tr class="hover:bg-slate-900/40">
+                    <td class="py-2 px-1 font-mono font-bold text-slate-400 bg-slate-900/50">#${r}</td>
+                    ${reporters.map(pid => {
+                      const c = roundCards[pid];
+                      return `
+                        <td class="py-2 px-1 truncate max-w-[80px]">
+                          ${c ? `
+                            <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-lg border text-[10px] font-bold ${c.badgeColor || 'bg-slate-800 border-slate-700 text-slate-200'}">
+                              <span>${c.icon || '🎴'}</span>
+                              <span class="truncate">${escapeHtml(c.attrName || '')}</span>
+                            </span>
+                          ` : `
+                            <span class="text-[10px] text-slate-600">─</span>
+                          `}
+                        </td>
+                      `;
+                    }).join('')}
+                  </tr>
+                `;
+              }).join('')}
+            </tbody>
+          </table>
+        </div>
       </div>
 
-      <!-- 2. 取材ボード（縦進行テーブル） -->
+      <!-- 【下の表】みんなの推理 ＆ 最接近ログの表 -->
       <div class="bg-slate-950/80 border border-slate-800 rounded-2xl p-3 shadow-md">
         <div class="text-xs font-bold text-sky-300 mb-2 flex items-center gap-1.5">
-          <span>📝</span> 取材ボード（推理ログ）
+          <span>📝</span> みんなの推理 ＆ 最接近の表
         </div>
         
         <div class="overflow-x-auto custom-scrollbar">
@@ -485,7 +521,7 @@ function renderSetupScreen() {
 }
 
 /**
- * 4. 質問画面（ボタン2回のスムーズな進行 ＆ 標準サイズ共有）
+ * 4. 質問画面（ボタン2回 ＆ リアルタイム表更新）
  */
 function renderQuestionScreen() {
   const isWitness = roomData.state.witnessId === myPlayerId;
@@ -518,7 +554,7 @@ function renderQuestionScreen() {
           ` : ''}
         </div>
 
-        <!-- ステップ1: カード選択（質問者のみ3枚から選択） -->
+        <!-- ステップ1: 質問者が3枚から1枚選んで共有する（ボタン1回目） -->
         ${state.phase === 'QUESTION_CHOOSE' ? `
           ${isMyTurn ? `
             <div class="space-y-3">
@@ -527,7 +563,7 @@ function renderQuestionScreen() {
                 <p class="text-xs text-slate-400 mt-0.5">3枚の中から使うカードを1枚選んでください</p>
               </div>
 
-              <!-- 3枚の候補（質問者だけに見える） -->
+              <!-- 3枚の候補 -->
               <div class="space-y-2">
                 ${threeCards.map((c, idx) => `
                   <button onclick="selectCardOption(${idx})" 
@@ -551,7 +587,7 @@ function renderQuestionScreen() {
                 `).join('')}
               </div>
 
-              <!-- ボタン1回目: みんなに共有 -->
+              <!-- ボタン1回目 -->
               <div class="pt-2">
                 <button onclick="handleShareSelectedCard()" class="w-full bg-emerald-600 hover:bg-emerald-500 active:scale-95 text-white font-black py-3.5 rounded-xl shadow-lg text-sm">
                   📢 このカードで質問する（みんなに共有）
@@ -562,7 +598,7 @@ function renderQuestionScreen() {
             <div class="text-center py-6 space-y-2">
               <div class="text-3xl animate-bounce">🎴</div>
               <p class="text-sm font-bold text-slate-300">${escapeHtml(askerName)} が質問カードを選択中...</p>
-              <p class="text-xs text-slate-500">決定されると選ばれたカードが画面に共有されます</p>
+              <p class="text-xs text-slate-500">決定されると選ばれたカードが画面と表に共有されます</p>
               ${(isHost || isWitness) ? `
                 <div class="pt-2">
                   <button onclick="handleShareSelectedCard(0)" class="text-[11px] text-slate-500 hover:text-amber-400 underline">
@@ -574,10 +610,9 @@ function renderQuestionScreen() {
           `}
         ` : ''}
 
-        <!-- ステップ2: カードが全員に共有され、口頭で質問＆回答中（標準サイズ表示） -->
+        <!-- ステップ2: 全員に選ばれたカードが標準サイズで表示され、口頭でやり取り中 -->
         ${state.phase === 'QUESTION_ORAL' ? `
           <div class="space-y-4">
-            <!-- 共有されたカード（以前の1枚引いた時と同じ標準的なコンパクトサイズ） -->
             <div class="bg-slate-900/90 border border-slate-700 p-4 rounded-2xl text-center space-y-1.5 shadow-md">
               <span class="text-xs px-2.5 py-0.5 rounded-full border font-bold ${card?.badgeColor || ''}">
                 ${card?.categoryName}
@@ -597,7 +632,7 @@ function renderQuestionScreen() {
                   `${escapeHtml(askerName)} が目撃者に口頭で質問しています。やり取りを聞いて推理に役立てましょう！`}
               </p>
 
-              <!-- ボタン2回目: 質問終了して交代 -->
+              <!-- ボタン2回目 -->
               ${isMyTurn ? `
                 <button onclick="handleFinishQuestionTurn()" class="w-full bg-emerald-600 hover:bg-emerald-500 active:scale-95 text-white font-black py-3.5 rounded-xl shadow-lg text-sm">
                   ✓ 質問完了！（次の人に交代）
@@ -615,7 +650,7 @@ function renderQuestionScreen() {
         ` : ''}
       </div>
 
-      <!-- 取材ログ（常時表示） -->
+      <!-- 2つの取材ログ（常時表示） -->
       ${renderInvestigationLogComponent()}
     </div>
   `;
@@ -627,21 +662,28 @@ function selectCardOption(idx) {
 }
 
 /**
- * ボタン1回目: 選んだカードを全員に共有する
+ * ボタン1回目: カードを決定し、全員に共有 ＆ 上の表にリアルタイム登録
  */
 function handleShareSelectedCard(forceIdx = null) {
   const threeCards = toArray(roomData.state?.threeCards);
   const chosenIdx = forceIdx !== null ? forceIdx : localSelectedCardIndex;
   const selectedCard = threeCards[chosenIdx] || threeCards[0] || FREE_CARD;
+  const curHintRound = Number(roomData.state?.hintRound) || 1;
+  const queue = toArray(roomData.state?.questionQueue);
+  const curIdx = Number(roomData.state?.currentQuestionIndex) || 0;
+  const askerId = queue[curIdx] || myPlayerId;
 
-  roomRef.child('state').update({
-    phase: 'QUESTION_ORAL',
-    currentQuestionCard: selectedCard
-  });
+  // 上の表（cardHistory）にリアルタイムで即座に追加！
+  const updates = {};
+  updates['state/phase'] = 'QUESTION_ORAL';
+  updates['state/currentQuestionCard'] = selectedCard;
+  updates[`state/cardHistory/${curHintRound}/${askerId}`] = selectedCard;
+
+  roomRef.update(updates);
 }
 
 /**
- * ボタン2回目: 質問完了して次の人へ交代
+ * ボタン2回目: 質問終了して交代
  */
 function handleFinishQuestionTurn() {
   const queue = toArray(roomData.state?.questionQueue);
@@ -651,7 +693,6 @@ function handleFinishQuestionTurn() {
   const currentCard = roomData.state?.currentQuestionCard || FREE_CARD;
 
   if (isEnd) {
-    // 3人終了 ➔ 推理タイムへ
     localTyping.inference = '';
     roomRef.child('state').update({
       phase: 'INFERENCE_INPUT',
@@ -660,7 +701,6 @@ function handleFinishQuestionTurn() {
       currentQuestionCard: null
     });
   } else {
-    // 次の人へ: 次の質問者用の3枚カードをセットして CHOOSE 画面へ
     const drawn = drawThreeCards(roomData.state?.markedDeck || []);
     localSelectedCardIndex = 0;
     roomRef.child('state').update({
@@ -732,7 +772,7 @@ function renderInferenceInputScreen() {
         `}
       </div>
 
-      <!-- 取材ログ（常時表示） -->
+      <!-- 2つの取材ログ（常時表示） -->
       ${renderInvestigationLogComponent()}
     </div>
   `;
@@ -807,7 +847,7 @@ function renderInferenceJudgeScreen() {
         ` : ''}
       </div>
 
-      <!-- 取材ログ（常時表示） -->
+      <!-- 2つの取材ログ（常時表示） -->
       ${renderInvestigationLogComponent()}
     </div>
   `;
@@ -864,7 +904,7 @@ function renderShipMoveScreen() {
         `}
       </div>
 
-      <!-- 取材ログ（常時表示） -->
+      <!-- 2つの取材ログ（常時表示） -->
       ${renderInvestigationLogComponent()}
     </div>
   `;
@@ -934,7 +974,7 @@ function renderScoopVoteGuesserScreen() {
         `}
       </div>
 
-      <!-- 取材ログ（常時表示） -->
+      <!-- 2つの取材ログ（常時表示） -->
       ${renderInvestigationLogComponent()}
     </div>
   `;
@@ -1017,7 +1057,7 @@ function renderScoopResultGuesserScreen() {
         `}
       </div>
 
-      <!-- 取材ログ（常時表示） -->
+      <!-- 2つの取材ログ（常時表示） -->
       ${renderInvestigationLogComponent()}
     </div>
   `;
@@ -1340,7 +1380,7 @@ function startNewWitnessGame(playedWitnesses = []) {
   roomRef.update({
     'state': {
       phase: 'SETUP',
-      hintRound: 1, // ★必ず1回目に完全リセット！
+      hintRound: 1, // ★1回目に完全リセット！
       playedWitnesses: newPlayedList,
       witnessId: nextWitnessId,
       insiderId: insiderId,
@@ -1351,6 +1391,7 @@ function startNewWitnessGame(playedWitnesses = []) {
       threeCards: [],
       inferences: {},
       history: [],
+      cardHistory: {}, // 上の表のログ（リアルタイム記録用）
       guesserVotes: {},
       votes: {}
     }
@@ -1444,7 +1485,6 @@ function finishJudging() {
   const currentHistory = toArray(roomData.state?.history);
   const newLogEntry = {
     hintRound: roomData.state.hintRound,
-    card: roomData.state.lastUsedCard || FREE_CARD,
     inferences: inferences,
     closestText: closestText,
     closestName: closestName
