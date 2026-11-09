@@ -51,6 +51,15 @@ if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 
 /**
+ * 安全な配列変換ヘルパー（Firebaseのオブジェクト化による不具合を防止）
+ */
+function toArray(data) {
+  if (!data) return [];
+  if (Array.isArray(data)) return data;
+  return Object.values(data);
+}
+
+/**
  * -------------------------------------------------------------
  * カード定義（全36枚）
  * -------------------------------------------------------------
@@ -130,7 +139,6 @@ let roomRef = null;
 let localTyping = { inference: '', secretWord: '' };
 const appEl = document.getElementById('app');
 
-// URLパラメータからルームコードを取得
 const urlParams = new URLSearchParams(window.location.search);
 let invitedRoomCode = urlParams.get('room') ? urlParams.get('room').toUpperCase() : '';
 
@@ -143,7 +151,6 @@ function render() {
   updateHeader();
   const phase = roomData.state?.phase;
 
-  // 推理入力フェーズ中、すでに入力欄が存在する場合はDOMを再生成せずステータス表示のみ更新（文字消え防止）
   if (phase === 'INFERENCE_INPUT') {
     const inputEl = document.getElementById('inputInferenceText');
     if (inputEl) {
@@ -183,7 +190,7 @@ function updateHeader() {
 }
 
 function renderLakeTrackComponent() {
-  const pos = roomData.state?.boatPos ?? 0;
+  const pos = Number(roomData.state?.boatPos) || 0;
   const isReached = pos >= 10;
   const percentage = Math.min(84, Math.max(2, (pos / 10) * 80));
 
@@ -208,7 +215,7 @@ function renderLakeTrackComponent() {
 }
 
 /**
- * 1. タイトル画面（招待URLの自動入力対応）
+ * 1. タイトル画面
  */
 function renderTitleScreen() {
   const initialCode = invitedRoomCode;
@@ -260,7 +267,7 @@ function renderTitleScreen() {
 }
 
 /**
- * 2. ロビー画面（招待URLコピーボタン完備）
+ * 2. ロビー画面
  */
 function renderLobbyScreen() {
   const isHost = roomData.hostId === myPlayerId;
@@ -395,13 +402,17 @@ function renderSetupScreen() {
 }
 
 /**
- * 4. 質問画面（質問者だけがボタンを押すワンタップ進行）
+ * 4. 質問画面（確実に次へ進む修正済み）
  */
 function renderQuestionScreen() {
   const isWitness = roomData.state.witnessId === myPlayerId;
+  const isHost = roomData.hostId === myPlayerId;
   const isInsider = roomData.mode === 'INSIDER' && roomData.state.insiderId === myPlayerId;
   const state = roomData.state;
-  const currentAskerId = state.questionQueue[state.currentQuestionIndex];
+
+  const queue = toArray(state.questionQueue);
+  const curIdx = Number(state.currentQuestionIndex) || 0;
+  const currentAskerId = queue[curIdx];
   const isMyTurn = currentAskerId === myPlayerId;
   const askerName = roomData.players[currentAskerId]?.name || '記者';
   const card = state.currentQuestionCard;
@@ -414,7 +425,7 @@ function renderQuestionScreen() {
         <div class="flex items-center justify-between border-b border-slate-700 pb-3">
           <div class="text-xs">
             <span class="text-emerald-400 font-bold">第 ${state.roundNumber} 周目</span>
-            <span class="text-slate-400">（質問 ${state.currentQuestionIndex + 1} / ${state.questionQueue.length}）</span>
+            <span class="text-slate-400">（質問 ${curIdx + 1} / ${queue.length}人）</span>
           </div>
           ${(isWitness || isInsider) ? `
             <div class="text-xs bg-amber-950 text-amber-300 border border-amber-700 px-2 py-0.5 rounded-full font-bold">
@@ -466,6 +477,13 @@ function renderQuestionScreen() {
             <div class="text-center py-8 space-y-2">
               <div class="text-3xl animate-bounce">🎴</div>
               <p class="text-sm font-bold text-slate-300">${escapeHtml(askerName)} がカードを準備中...</p>
+              ${(isHost || isWitness) ? `
+                <div class="pt-2">
+                  <button onclick="handleFinishQuestionTurn()" class="text-[11px] text-slate-500 hover:text-amber-400 underline">
+                    ⏩ この質問をスキップして次へ
+                  </button>
+                </div>
+              ` : ''}
             </div>
           `}
         ` : ''}
@@ -487,15 +505,20 @@ function renderQuestionScreen() {
               <div class="text-xs text-amber-300 font-bold">【口頭で質問＆回答タイム】</div>
               <p class="text-xs text-slate-300 leading-relaxed">
                 ${isMyTurn ? 
-                  '目撃者へ口頭で質問してください！目撃者の口頭回答を聞いたら、下のボタンを押して次の人へ進めます。' : 
+                  '目撃者へ口頭で質問してください！回答を聞いたら、下のボタンを押して次の人へ進めます。' : 
                   `${escapeHtml(askerName)} が目撃者に質問しています。口頭のやり取りを聞きましょう！`}
               </p>
               ${isMyTurn ? `
                 <button onclick="handleFinishQuestionTurn()" class="w-full bg-emerald-600 hover:bg-emerald-500 active:scale-95 text-white font-black py-3.5 rounded-xl shadow-lg text-sm">
-                  ✓ 質問・回答が完了（次の人へ進む）
+                  ✓ 質問完了！（次の人へ進む）
                 </button>
               ` : `
-                <div class="text-xs text-slate-500 animate-pulse py-2">質問者の完了操作を待機中...</div>
+                <div class="text-xs text-slate-500 animate-pulse py-1">質問者の完了操作を待機中...</div>
+                ${(isHost || isWitness) ? `
+                  <button onclick="handleFinishQuestionTurn()" class="text-[11px] text-slate-500 hover:text-amber-400 underline pt-1">
+                    ⏩ 回答完了として次へ進める
+                  </button>
+                ` : ''}
               `}
             </div>
           </div>
@@ -506,7 +529,7 @@ function renderQuestionScreen() {
 }
 
 /**
- * 5. 個人推理入力画面（目撃者は入力不要・正解の漏洩防止）
+ * 5. 個人推理入力画面
  */
 function renderInferenceInputScreen() {
   const isWitness = roomData.state.witnessId === myPlayerId;
@@ -576,7 +599,7 @@ function updateInferenceWaitingStatus() {
 }
 
 /**
- * 6. 推理一斉公開 ＆ 判定（記者の画面には正解単語を一切出さない）
+ * 6. 推理一斉公開 ＆ 判定
  */
 function renderInferenceJudgeScreen() {
   const isWitness = roomData.state.witnessId === myPlayerId;
@@ -643,7 +666,7 @@ function renderInferenceJudgeScreen() {
  */
 function renderShipMoveScreen() {
   const isWitness = roomData.state.witnessId === myPlayerId;
-  const currentPos = roomData.state.boatPos ?? 0;
+  const currentPos = Number(roomData.state.boatPos) || 0;
 
   appEl.innerHTML = `
     <div class="space-y-3">
@@ -1034,7 +1057,7 @@ function renderSetCompleteScreen() {
 
 /**
  * -------------------------------------------------------------
- * ネットワーク＆ロジック操作
+ * ネットワーク＆ロジック操作（不具合修正済み）
  * -------------------------------------------------------------
  */
 function handleCreateRoom() {
@@ -1107,21 +1130,22 @@ function setGameMode(mode) {
 }
 
 function handleStartGameSet() {
-  const pids = Object.keys(roomData.players);
+  const pids = Object.keys(roomData.players || {});
   if (pids.length < 4) return showToast('4人以上必要です');
   startRound(1, shuffle(pids));
 }
 
 function startRound(roundNum, witnessOrder) {
-  const witnessId = witnessOrder[roundNum - 1];
-  const candidates = witnessOrder.filter(id => id !== witnessId);
+  const wOrder = toArray(witnessOrder);
+  const witnessId = wOrder[roundNum - 1];
+  const candidates = wOrder.filter(id => id !== witnessId);
   const insiderId = candidates[Math.floor(Math.random() * candidates.length)];
 
   roomRef.update({
     'state': {
       phase: 'SETUP',
       roundNumber: roundNum,
-      witnessOrder: witnessOrder,
+      witnessOrder: wOrder,
       witnessId: witnessId,
       insiderId: insiderId,
       secretWord: '',
@@ -1140,7 +1164,7 @@ function submitSetup() {
   const word = localTyping.secretWord.trim();
   if (!word) return showToast('正体の言葉を入力してください');
 
-  const pids = Object.keys(roomData.players);
+  const pids = Object.keys(roomData.players || {});
   const witnessId = roomData.state.witnessId;
   const nonWitnesses = pids.filter(id => id !== witnessId);
   const queue = shuffle(nonWitnesses).slice(0, Math.min(3, nonWitnesses.length));
@@ -1150,13 +1174,14 @@ function submitSetup() {
     secretWord: word,
     boatPos: 0,
     questionQueue: queue,
-    currentQuestionIndex: 0
+    currentQuestionIndex: 0,
+    currentQuestionCard: null
   });
 }
 
 function handleDrawCard() {
-  let deck = [...(roomData.state.deck || [])];
-  let discard = [...(roomData.state.discard || [])];
+  let deck = toArray(roomData.state?.deck);
+  let discard = toArray(roomData.state?.discard);
 
   if (deck.length === 0) {
     if (discard.length === 0) deck = createFullDeck();
@@ -1201,14 +1226,20 @@ function handleInsiderPickCard(category, attrName) {
   });
 }
 
-// 質問者だけが押して次に進める
+// 確実に次の質問者へ進める関数（修正箇所）
 function handleFinishQuestionTurn() {
-  const nextIdx = roomData.state.currentQuestionIndex + 1;
-  const isEnd = nextIdx >= roomData.state.questionQueue.length;
+  const queue = toArray(roomData.state?.questionQueue);
+  const curIdx = Number(roomData.state?.currentQuestionIndex) || 0;
+  const nextIdx = curIdx + 1;
+  const isEnd = nextIdx >= queue.length;
 
   if (isEnd) {
     localTyping.inference = '';
-    roomRef.child('state').update({ phase: 'INFERENCE_INPUT', inferences: {} });
+    roomRef.child('state').update({
+      phase: 'INFERENCE_INPUT',
+      inferences: {},
+      currentQuestionCard: null
+    });
   } else {
     roomRef.child('state').update({
       phase: 'QUESTION_CHOOSE',
@@ -1218,7 +1249,6 @@ function handleFinishQuestionTurn() {
   }
 }
 
-// 記者が推理を送信（目撃者は送信不要）
 function handleSubmitInference() {
   const text = localTyping.inference.trim();
   if (!text) return showToast('推理を入力してください');
@@ -1230,8 +1260,7 @@ function handleSubmitInference() {
   }).then(() => {
     roomRef.child('state/inferences').get().then(snap => {
       const infs = snap.val() || {};
-      const reporters = Object.keys(roomData.players).filter(id => id !== roomData.state.witnessId);
-      // 目撃者以外の記者全員が送信したら公開へ
+      const reporters = Object.keys(roomData.players || {}).filter(id => id !== roomData.state.witnessId);
       if (Object.keys(infs).length >= reporters.length) {
         roomRef.child('state').update({ phase: 'INFERENCE_JUDGE' });
       }
@@ -1260,34 +1289,32 @@ function finishJudging() {
   const hasCorrect = Object.values(inferences).some(inf => inf.isCorrect === true);
 
   if (hasCorrect) {
-    // 正解が出たらボートを湖（10）へ移動してスクープ会議へ！
     roomRef.child('state').update({
       boatPos: 10,
       phase: 'SCOOP_VOTE_GUESSER',
       guesserVotes: {}
     });
   } else {
-    // 正解がなければボート移動フェーズへ
     roomRef.child('state').update({ phase: 'SHIP_MOVE' });
   }
 }
 
 function handleAdjustBoat(delta) {
-  const cur = roomData.state.boatPos ?? 0;
+  const cur = Number(roomData.state.boatPos) || 0;
   const next = Math.max(0, Math.min(10, cur + delta));
   roomRef.child('state/boatPos').set(next);
 }
 
 function confirmBoatMoveAndProceed() {
   const maxRounds = 5;
-  const curRound = roomData.state.roundNumber;
+  const curRound = Number(roomData.state.roundNumber) || 1;
 
   if (curRound >= maxRounds) {
     const scores = {};
     Object.keys(roomData.players).forEach(pid => scores[pid] = 0);
     applyRoundScores(scores, '5つのヒントを終えても正解が出ませんでした。（全員0点）');
   } else {
-    const pids = Object.keys(roomData.players);
+    const pids = Object.keys(roomData.players || {});
     const nonWitnesses = pids.filter(id => id !== roomData.state.witnessId);
     const queue = shuffle(nonWitnesses).slice(0, Math.min(3, nonWitnesses.length));
 
@@ -1305,7 +1332,7 @@ function handleSubmitGuesserVote(targetPid) {
   roomRef.child('state/guesserVotes/' + myPlayerId).set(targetPid).then(() => {
     roomRef.child('state/guesserVotes').get().then(snap => {
       const votes = snap.val() || {};
-      const reporterCount = Object.keys(roomData.players).length - 1;
+      const reporterCount = Object.keys(roomData.players || {}).length - 1;
       if (Object.keys(votes).length >= reporterCount) {
         roomRef.child('state').update({ phase: 'SCOOP_RESULT_GUESSER' });
       }
@@ -1393,13 +1420,14 @@ function applyRoundScores(roundScores, reason) {
 }
 
 function handleNextRoundOrEnd() {
-  const curRound = roomData.state.roundNumber;
+  const curRound = Number(roomData.state.roundNumber) || 1;
+  const wOrder = toArray(roomData.state.witnessOrder);
   const total = Object.keys(roomData.players).length;
 
   if (curRound >= total) {
     roomRef.child('state').update({ phase: 'SET_COMPLETE' });
   } else {
-    startRound(curRound + 1, roomData.state.witnessOrder);
+    startRound(curRound + 1, wOrder);
   }
 }
 
@@ -1410,14 +1438,11 @@ function handleLeaveRoom() {
   }
 }
 
-// 招待URLをクリップボードにコピー
 function copyInviteUrl() {
   const inviteUrl = window.location.origin + window.location.pathname + '?room=' + currentRoomId;
   navigator.clipboard.writeText(inviteUrl).then(() => {
-    showToast('招待URLをコピーしました！友達に送信してください');
-  }).catch(() => {
-    copyRoomCode();
-  });
+    showToast('招待URLをコピーしました！');
+  }).catch(() => copyRoomCode());
 }
 
 function copyRoomCode() {
@@ -1440,7 +1465,7 @@ function escapeHtml(str) {
   return str.replace(/[&<>'"]/g, tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[tag] || tag));
 }
 
-// 初回起動
+// 起動
 render();
 </script>
 </body>
