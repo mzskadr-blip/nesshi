@@ -210,30 +210,32 @@ function renderLakeTrackComponent() {
 }
 
 /**
- * 取材ボード ＆ ヒントカード一覧（パターンA：縦進行テーブル）
+ * 常時表示される取材ログ（ヒントカード一覧 ＆ 縦進行テーブル）
  */
 function renderInvestigationLogComponent() {
   const history = toArray(roomData.state?.history);
-  if (history.length === 0) return '';
-
-  const reporters = Object.keys(roomData.players || {}).filter(pid => pid !== roomData.state.witnessId);
+  const reporters = Object.keys(roomData.players || {}).filter(pid => pid !== roomData.state?.witnessId);
 
   return `
     <div class="mt-4 space-y-3">
-      <!-- 1. ヒントカード一覧（別枠） -->
+      <!-- 1. ヒントカード一覧 -->
       <div class="bg-slate-950/80 border border-slate-800 rounded-2xl p-3 shadow-md">
-        <div class="text-xs font-bold text-amber-300 mb-2 flex items-center gap-1.5">
+        <div class="text-xs font-bold text-amber-300 mb-1.5 flex items-center gap-1.5">
           <span>📋</span> 出されたヒントカード一覧（${history.length} / 5回）
         </div>
-        <div class="flex flex-wrap gap-1.5">
-          ${history.map((h, i) => `
-            <div class="px-2.5 py-1.5 rounded-xl border text-xs flex items-center gap-1.5 ${h.card?.badgeColor || 'bg-slate-900 border-slate-700'}">
-              <span class="font-black text-[10px] opacity-70">#${i + 1}</span>
-              <span>${h.card?.icon || '🎴'}</span>
-              <span class="font-bold">${escapeHtml(h.card?.attrName || '')}</span>
-            </div>
-          `).join('')}
-        </div>
+        ${history.length === 0 ? `
+          <div class="text-[11px] text-slate-500 py-1 text-center">まだヒントカードは出ていません</div>
+        ` : `
+          <div class="flex flex-wrap gap-1.5">
+            ${history.map((h, i) => `
+              <div class="px-2.5 py-1 rounded-xl border text-xs flex items-center gap-1.5 ${h.card?.badgeColor || 'bg-slate-900 border-slate-700'}">
+                <span class="font-black text-[10px] opacity-70">#${i + 1}</span>
+                <span>${h.card?.icon || '🎴'}</span>
+                <span class="font-bold">${escapeHtml(h.card?.attrName || '')}</span>
+              </div>
+            `).join('')}
+          </div>
+        `}
       </div>
 
       <!-- 2. 取材ボード（縦進行テーブル） -->
@@ -243,36 +245,44 @@ function renderInvestigationLogComponent() {
         </div>
         
         <div class="overflow-x-auto custom-scrollbar">
-          <table class="w-full text-center border-collapse text-xs min-w-[300px]">
+          <table class="w-full text-center border-collapse text-xs min-w-[280px]">
             <thead>
               <tr class="bg-slate-900 text-slate-400 border-b border-slate-700">
-                <th class="py-2 px-1 font-bold w-10">回</th>
+                <th class="py-1.5 px-1 font-bold w-10">回</th>
                 ${reporters.map(pid => `
-                  <th class="py-2 px-1 font-bold truncate max-w-[80px]">
+                  <th class="py-1.5 px-1 font-bold truncate max-w-[75px]">
                     ${escapeHtml(roomData.players[pid]?.name || '記者')}
                   </th>
                 `).join('')}
-                <th class="py-2 px-1 font-black text-amber-400 w-24">最接近★</th>
+                <th class="py-1.5 px-1 font-black text-amber-400 w-24">最接近★</th>
               </tr>
             </thead>
             <tbody class="divide-y divide-slate-800">
-              ${history.map((h, i) => `
-                <tr class="hover:bg-slate-900/40">
-                  <td class="py-2 px-1 font-mono font-bold text-slate-400 bg-slate-900/50">#${i + 1}</td>
-                  ${reporters.map(pid => {
-                    const inf = h.inferences?.[pid];
-                    const isClosest = inf?.isClosest;
-                    return `
-                      <td class="py-2 px-1 truncate max-w-[80px] ${isClosest ? 'bg-amber-950/50 text-amber-200 font-bold border border-amber-500/40' : 'text-slate-300'}">
-                        ${escapeHtml(inf?.text || '─')}
-                      </td>
-                    `;
-                  }).join('')}
-                  <td class="py-2 px-1 font-black text-amber-300 bg-amber-950/20 truncate max-w-[90px]">
-                    ${escapeHtml(h.closestText ? `★ ${h.closestText}` : '─')}
+              ${history.length === 0 ? `
+                <tr>
+                  <td colspan="${reporters.length + 2}" class="py-3 text-[11px] text-slate-500 text-center">
+                    まだ推理履歴はありません（推理タイム終了後に記録されます）
                   </td>
                 </tr>
-              `).join('')}
+              ` : `
+                ${history.map((h, i) => `
+                  <tr class="hover:bg-slate-900/40">
+                    <td class="py-2 px-1 font-mono font-bold text-slate-400 bg-slate-900/50">#${i + 1}</td>
+                    ${reporters.map(pid => {
+                      const inf = h.inferences?.[pid];
+                      const isClosest = inf?.isClosest;
+                      return `
+                        <td class="py-2 px-1 truncate max-w-[75px] ${isClosest ? 'bg-amber-950/60 text-amber-200 font-bold border border-amber-500/40' : 'text-slate-300'}">
+                          ${escapeHtml(inf?.text || '─')}
+                        </td>
+                      `;
+                    }).join('')}
+                    <td class="py-2 px-1 font-black text-amber-300 bg-amber-950/20 truncate max-w-[85px]">
+                      ${escapeHtml(h.closestText ? `★ ${h.closestText}` : '─')}
+                    </td>
+                  </tr>
+                `).join('')}
+              `}
             </tbody>
           </table>
         </div>
@@ -475,7 +485,7 @@ function renderSetupScreen() {
 }
 
 /**
- * 4. 質問画面（カード最初から3枚並び・1枚選んで口頭質問）
+ * 4. 質問画面（ボタン2回のスムーズな進行 ＆ 標準サイズ共有）
  */
 function renderQuestionScreen() {
   const isWitness = roomData.state.witnessId === myPlayerId;
@@ -489,7 +499,7 @@ function renderQuestionScreen() {
   const isMyTurn = currentAskerId === myPlayerId;
   const askerName = roomData.players[currentAskerId]?.name || '記者';
   const threeCards = toArray(state.threeCards);
-  const selectedCard = threeCards[localSelectedCardIndex] || threeCards[0];
+  const card = state.currentQuestionCard;
 
   appEl.innerHTML = `
     <div class="space-y-3">
@@ -508,60 +518,104 @@ function renderQuestionScreen() {
           ` : ''}
         </div>
 
-        ${isMyTurn ? `
-          <div class="space-y-3">
-            <div class="text-center">
-              <span class="text-xs font-bold text-emerald-400">あなたの質問番です！</span>
-              <p class="text-xs text-slate-400 mt-0.5">3枚の中から使うカードを1枚タップしてください</p>
-            </div>
+        <!-- ステップ1: カード選択（質問者のみ3枚から選択） -->
+        ${state.phase === 'QUESTION_CHOOSE' ? `
+          ${isMyTurn ? `
+            <div class="space-y-3">
+              <div class="text-center">
+                <span class="text-xs font-bold text-emerald-400">あなたの質問番です！</span>
+                <p class="text-xs text-slate-400 mt-0.5">3枚の中から使うカードを1枚選んでください</p>
+              </div>
 
-            <!-- 3枚のカード候補 -->
-            <div class="space-y-2">
-              ${threeCards.map((c, idx) => `
-                <button onclick="selectCardOption(${idx})" 
-                  class="w-full p-3 rounded-2xl border text-left transition ${
-                    localSelectedCardIndex === idx 
-                      ? 'border-amber-400 bg-amber-950/40 ring-2 ring-amber-500/50 shadow-md' 
-                      : 'border-slate-700 bg-slate-900/80 hover:bg-slate-800'
-                  }">
-                  <div class="flex items-center justify-between">
-                    <span class="text-xs font-bold ${c.badgeColor} px-2 py-0.5 rounded-full border">
-                      ${c.categoryName}
-                    </span>
-                    ${localSelectedCardIndex === idx ? '<span class="text-xs text-amber-400 font-black">選択中 ✓</span>' : ''}
-                  </div>
-                  <div class="text-base font-black text-slate-100 mt-1 flex items-center gap-1.5">
-                    <span>${c.icon}</span>
-                    <span>${c.attrName}</span>
-                  </div>
-                  <p class="text-[11px] text-slate-400 mt-0.5">${c.desc}</p>
-                </button>
-              `).join('')}
-            </div>
+              <!-- 3枚の候補（質問者だけに見える） -->
+              <div class="space-y-2">
+                ${threeCards.map((c, idx) => `
+                  <button onclick="selectCardOption(${idx})" 
+                    class="w-full p-3 rounded-2xl border text-left transition ${
+                      localSelectedCardIndex === idx 
+                        ? 'border-amber-400 bg-amber-950/40 ring-2 ring-amber-500/50 shadow-md' 
+                        : 'border-slate-700 bg-slate-900/80 hover:bg-slate-800'
+                    }">
+                    <div class="flex items-center justify-between">
+                      <span class="text-xs font-bold ${c.badgeColor} px-2 py-0.5 rounded-full border">
+                        ${c.categoryName}
+                      </span>
+                      ${localSelectedCardIndex === idx ? '<span class="text-xs text-amber-400 font-black">選択中 ✓</span>' : ''}
+                    </div>
+                    <div class="text-base font-black text-slate-100 mt-1 flex items-center gap-1.5">
+                      <span>${c.icon}</span>
+                      <span>${c.attrName}</span>
+                    </div>
+                    <p class="text-[11px] text-slate-400 mt-0.5">${c.desc}</p>
+                  </button>
+                `).join('')}
+              </div>
 
-            <div class="pt-2">
-              <button onclick="handleFinishQuestionTurn(${localSelectedCardIndex})" class="w-full bg-emerald-600 hover:bg-emerald-500 active:scale-95 text-white font-black py-3.5 rounded-xl shadow-lg text-sm">
-                🗣️ 口頭で質問した！（次の人へ進む）
-              </button>
-            </div>
-          </div>
-        ` : `
-          <div class="text-center py-6 space-y-2">
-            <div class="text-3xl animate-bounce">🎴</div>
-            <p class="text-sm font-bold text-slate-300">${escapeHtml(askerName)} が質問カードを選択中...</p>
-            <p class="text-xs text-slate-500">口頭でのやり取りを聞いてメモしましょう</p>
-            ${(isHost || isWitness) ? `
+              <!-- ボタン1回目: みんなに共有 -->
               <div class="pt-2">
-                <button onclick="handleFinishQuestionTurn(0)" class="text-[11px] text-slate-500 hover:text-amber-400 underline">
-                  ⏩ この質問をスキップして次へ進める
+                <button onclick="handleShareSelectedCard()" class="w-full bg-emerald-600 hover:bg-emerald-500 active:scale-95 text-white font-black py-3.5 rounded-xl shadow-lg text-sm">
+                  📢 このカードで質問する（みんなに共有）
                 </button>
               </div>
-            ` : ''}
+            </div>
+          ` : `
+            <div class="text-center py-6 space-y-2">
+              <div class="text-3xl animate-bounce">🎴</div>
+              <p class="text-sm font-bold text-slate-300">${escapeHtml(askerName)} が質問カードを選択中...</p>
+              <p class="text-xs text-slate-500">決定されると選ばれたカードが画面に共有されます</p>
+              ${(isHost || isWitness) ? `
+                <div class="pt-2">
+                  <button onclick="handleShareSelectedCard(0)" class="text-[11px] text-slate-500 hover:text-amber-400 underline">
+                    ⏩ 代わりに決定して進める
+                  </button>
+                </div>
+              ` : ''}
+            </div>
+          `}
+        ` : ''}
+
+        <!-- ステップ2: カードが全員に共有され、口頭で質問＆回答中（標準サイズ表示） -->
+        ${state.phase === 'QUESTION_ORAL' ? `
+          <div class="space-y-4">
+            <!-- 共有されたカード（以前の1枚引いた時と同じ標準的なコンパクトサイズ） -->
+            <div class="bg-slate-900/90 border border-slate-700 p-4 rounded-2xl text-center space-y-1.5 shadow-md">
+              <span class="text-xs px-2.5 py-0.5 rounded-full border font-bold ${card?.badgeColor || ''}">
+                ${card?.categoryName}
+              </span>
+              <div class="text-2xl font-black text-slate-100 mt-1 flex items-center justify-center gap-1.5">
+                <span>${card?.icon || '🎴'}</span>
+                <span>${card?.attrName || ''}</span>
+              </div>
+              <p class="text-xs text-slate-400 whitespace-pre-line leading-relaxed pt-1">${card?.desc || ''}</p>
+            </div>
+
+            <div class="bg-slate-950/60 border border-slate-800 p-4 rounded-xl text-center space-y-3">
+              <div class="text-xs text-amber-300 font-bold">【口頭で質問＆回答タイム】</div>
+              <p class="text-xs text-slate-300 leading-relaxed">
+                ${isMyTurn ? 
+                  '目撃者へ口頭で質問してください！目撃者の口頭回答を聞いたら、下のボタンを押して次の人へ交代します。' : 
+                  `${escapeHtml(askerName)} が目撃者に口頭で質問しています。やり取りを聞いて推理に役立てましょう！`}
+              </p>
+
+              <!-- ボタン2回目: 質問終了して交代 -->
+              ${isMyTurn ? `
+                <button onclick="handleFinishQuestionTurn()" class="w-full bg-emerald-600 hover:bg-emerald-500 active:scale-95 text-white font-black py-3.5 rounded-xl shadow-lg text-sm">
+                  ✓ 質問完了！（次の人に交代）
+                </button>
+              ` : `
+                <div class="text-xs text-slate-500 animate-pulse py-1">質問者の完了操作を待機中...</div>
+                ${(isHost || isWitness) ? `
+                  <button onclick="handleFinishQuestionTurn()" class="text-[11px] text-slate-500 hover:text-amber-400 underline pt-1">
+                    ⏩ スキップして次の人に交代
+                  </button>
+                ` : ''}
+              `}
+            </div>
           </div>
-        `}
+        ` : ''}
       </div>
 
-      <!-- 取材ボード ＆ ヒントカード一覧 -->
+      <!-- 取材ログ（常時表示） -->
       ${renderInvestigationLogComponent()}
     </div>
   `;
@@ -570,6 +624,54 @@ function renderQuestionScreen() {
 function selectCardOption(idx) {
   localSelectedCardIndex = idx;
   render();
+}
+
+/**
+ * ボタン1回目: 選んだカードを全員に共有する
+ */
+function handleShareSelectedCard(forceIdx = null) {
+  const threeCards = toArray(roomData.state?.threeCards);
+  const chosenIdx = forceIdx !== null ? forceIdx : localSelectedCardIndex;
+  const selectedCard = threeCards[chosenIdx] || threeCards[0] || FREE_CARD;
+
+  roomRef.child('state').update({
+    phase: 'QUESTION_ORAL',
+    currentQuestionCard: selectedCard
+  });
+}
+
+/**
+ * ボタン2回目: 質問完了して次の人へ交代
+ */
+function handleFinishQuestionTurn() {
+  const queue = toArray(roomData.state?.questionQueue);
+  const curIdx = Number(roomData.state?.currentQuestionIndex) || 0;
+  const nextIdx = curIdx + 1;
+  const isEnd = nextIdx >= queue.length;
+  const currentCard = roomData.state?.currentQuestionCard || FREE_CARD;
+
+  if (isEnd) {
+    // 3人終了 ➔ 推理タイムへ
+    localTyping.inference = '';
+    roomRef.child('state').update({
+      phase: 'INFERENCE_INPUT',
+      inferences: {},
+      lastUsedCard: currentCard,
+      currentQuestionCard: null
+    });
+  } else {
+    // 次の人へ: 次の質問者用の3枚カードをセットして CHOOSE 画面へ
+    const drawn = drawThreeCards(roomData.state?.markedDeck || []);
+    localSelectedCardIndex = 0;
+    roomRef.child('state').update({
+      phase: 'QUESTION_CHOOSE',
+      currentQuestionIndex: nextIdx,
+      threeCards: drawn.cards,
+      markedDeck: drawn.deck,
+      lastUsedCard: currentCard,
+      currentQuestionCard: null
+    });
+  }
 }
 
 /**
@@ -630,6 +732,7 @@ function renderInferenceInputScreen() {
         `}
       </div>
 
+      <!-- 取材ログ（常時表示） -->
       ${renderInvestigationLogComponent()}
     </div>
   `;
@@ -704,6 +807,7 @@ function renderInferenceJudgeScreen() {
         ` : ''}
       </div>
 
+      <!-- 取材ログ（常時表示） -->
       ${renderInvestigationLogComponent()}
     </div>
   `;
@@ -760,6 +864,7 @@ function renderShipMoveScreen() {
         `}
       </div>
 
+      <!-- 取材ログ（常時表示） -->
       ${renderInvestigationLogComponent()}
     </div>
   `;
@@ -829,6 +934,7 @@ function renderScoopVoteGuesserScreen() {
         `}
       </div>
 
+      <!-- 取材ログ（常時表示） -->
       ${renderInvestigationLogComponent()}
     </div>
   `;
@@ -911,6 +1017,7 @@ function renderScoopResultGuesserScreen() {
         `}
       </div>
 
+      <!-- 取材ログ（常時表示） -->
       ${renderInvestigationLogComponent()}
     </div>
   `;
@@ -1043,7 +1150,6 @@ function renderRoundResultScreen() {
         <div class="pt-2 border-t border-slate-800 text-slate-300">${res?.reason || ''}</div>
       </div>
 
-      <!-- スコアまたは正解数の表示 -->
       <div class="space-y-2 text-left">
         <span class="text-xs font-bold text-slate-300">${isNormal ? '現在の累計正解数:' : '現在の獲得得点:'}</span>
         <div class="space-y-1.5">
@@ -1129,7 +1235,7 @@ function renderSetCompleteScreen() {
 
 /**
  * -------------------------------------------------------------
- * ネットワーク＆ロジック操作（回数完全リセット＆ランダム選出）
+ * ネットワーク＆ロジック操作
  * -------------------------------------------------------------
  */
 function handleCreateRoom() {
@@ -1206,7 +1312,6 @@ function handleStartGameSet() {
   const pids = Object.keys(roomData.players || {});
   if (pids.length < 4) return showToast('4人以上必要です');
 
-  // スコア・正解数の初期化
   const updates = {};
   pids.forEach(pid => {
     updates[`players/${pid}/score`] = 0;
@@ -1217,9 +1322,6 @@ function handleStartGameSet() {
   });
 }
 
-/**
- * まだ目撃者をやっていない人からランダム選出し、ゲームを開始
- */
 function startNewWitnessGame(playedWitnesses = []) {
   const allPids = Object.keys(roomData.players || {});
   const remainingWitnesses = allPids.filter(pid => !playedWitnesses.includes(pid));
@@ -1229,11 +1331,9 @@ function startNewWitnessGame(playedWitnesses = []) {
     return;
   }
 
-  // まだやっていない人から完全ランダム選出
   const nextWitnessId = remainingWitnesses[Math.floor(Math.random() * remainingWitnesses.length)];
   const newPlayedList = [...playedWitnesses, nextWitnessId];
 
-  // インサイダーは目撃者以外から完全ランダム選出
   const nonWitnesses = allPids.filter(pid => pid !== nextWitnessId);
   const insiderId = nonWitnesses[Math.floor(Math.random() * nonWitnesses.length)];
 
@@ -1266,7 +1366,6 @@ function submitSetup() {
   const nonWitnesses = pids.filter(id => id !== witnessId);
   const queue = shuffle(nonWitnesses).slice(0, Math.min(3, nonWitnesses.length));
 
-  // 最初の質問者のための3枚カード生成
   const drawnCards = drawThreeCards(roomData.state.markedDeck || []);
 
   localSelectedCardIndex = 0;
@@ -1278,13 +1377,11 @@ function submitSetup() {
     currentQuestionIndex: 0,
     threeCards: drawnCards.cards,
     markedDeck: drawnCards.deck,
+    currentQuestionCard: null,
     inferences: {}
   });
 }
 
-/**
- * 3枚のカードを引く（必ず1枚自由カード ＋ 山札から2枚）
- */
 function drawThreeCards(deck) {
   let curDeck = toArray(deck);
   if (curDeck.length < 2) curDeck = createMarkedDeck();
@@ -1295,38 +1392,6 @@ function drawThreeCards(deck) {
     cards: [FREE_CARD, c1, c2],
     deck: curDeck
   };
-}
-
-// 質問完了処理
-function handleFinishQuestionTurn(chosenIdx) {
-  const threeCards = toArray(roomData.state?.threeCards);
-  const selectedCard = threeCards[chosenIdx] || threeCards[0] || FREE_CARD;
-
-  const queue = toArray(roomData.state?.questionQueue);
-  const curIdx = Number(roomData.state?.currentQuestionIndex) || 0;
-  const nextIdx = curIdx + 1;
-  const isEnd = nextIdx >= queue.length;
-
-  if (isEnd) {
-    // 3人の質問が終了 ➔ 推理タイムへ
-    localTyping.inference = '';
-    roomRef.child('state').update({
-      phase: 'INFERENCE_INPUT',
-      inferences: {},
-      lastUsedCard: selectedCard
-    });
-  } else {
-    // 次の質問者へ：次の質問者用の3枚カードをセット
-    const drawn = drawThreeCards(roomData.state?.markedDeck || []);
-    localSelectedCardIndex = 0;
-    roomRef.child('state').update({
-      phase: 'QUESTION_CHOOSE',
-      currentQuestionIndex: nextIdx,
-      threeCards: drawn.cards,
-      markedDeck: drawn.deck,
-      lastUsedCard: selectedCard
-    });
-  }
 }
 
 function handleSubmitInference() {
@@ -1367,7 +1432,6 @@ function finishJudging() {
   const hasUnjudged = Object.values(inferences).some(inf => inf.isCorrect === null);
   if (hasUnjudged) return showToast('全員の回答に⭕または❌をつけてください');
 
-  // 最接近の特定
   let closestText = '';
   let closestName = '';
   Object.entries(inferences).forEach(([pid, inf]) => {
@@ -1377,7 +1441,6 @@ function finishJudging() {
     }
   });
 
-  // 今回のヒント周のログを取材ボードに追加
   const currentHistory = toArray(roomData.state?.history);
   const newLogEntry = {
     hintRound: roomData.state.hintRound,
@@ -1415,10 +1478,8 @@ function confirmBoatMoveAndProceed() {
   const curHintRound = Number(roomData.state.hintRound) || 1;
 
   if (curHintRound >= 5) {
-    // 5回ヒントを出しても正解が出なかった
     applyRoundResults(false, []);
   } else {
-    // 次のヒント回へ
     const pids = Object.keys(roomData.players || {});
     const nonWitnesses = pids.filter(id => id !== roomData.state.witnessId);
     const queue = shuffle(nonWitnesses).slice(0, Math.min(3, nonWitnesses.length));
@@ -1427,11 +1488,12 @@ function confirmBoatMoveAndProceed() {
     localSelectedCardIndex = 0;
     roomRef.child('state').update({
       phase: 'QUESTION_CHOOSE',
-      hintRound: curHintRound + 1, // 回数を進める
+      hintRound: curHintRound + 1,
       questionQueue: queue,
       currentQuestionIndex: 0,
       threeCards: drawn.cards,
       markedDeck: drawn.deck,
+      currentQuestionCard: null,
       inferences: {}
     });
   }
@@ -1458,11 +1520,9 @@ function handleProceedAfterGuesserVote(isGuesserIdentified) {
     if (isGuesserIdentified) {
       roomRef.child('state').update({ phase: 'INSIDER_VOTE', votes: {} });
     } else {
-      // インサイダーモード：正解者特定失敗
       applyInsiderScores('GUESSER_FAILED');
     }
   } else {
-    // ネッシーモード
     applyRoundResults(isGuesserIdentified, correctPids);
   }
 }
@@ -1484,9 +1544,6 @@ function handleResolveInsiderRound(accusedPid) {
   applyInsiderScores(isInsiderCaught ? 'INSIDER_CAUGHT' : 'INSIDER_ESCAPED');
 }
 
-/**
- * 通常ネッシーモード：正解数のみを更新
- */
 function applyRoundResults(isSuccess, correctPids) {
   const updates = {};
   const reason = isSuccess ? 
@@ -1505,9 +1562,6 @@ function applyRoundResults(isSuccess, correctPids) {
   roomRef.update(updates);
 }
 
-/**
- * インサイダーモード：得点を計算
- */
 function applyInsiderScores(outcome) {
   const actualInsiderId = roomData.state.insiderId;
   const witnessId = roomData.state.witnessId;
