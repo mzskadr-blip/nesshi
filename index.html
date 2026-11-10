@@ -58,6 +58,44 @@ function toArray(data) {
 
 /**
  * -------------------------------------------------------------
+ * お題候補マスターリスト
+ * -------------------------------------------------------------
+ */
+const TOPIC_LIST = [
+  "イルカ","クジラ","サメ","タコ","クラゲ","ウミガメ","ペンギン","フラミンゴ","カメレオン","カワウソ",
+  "ナマケモノ","アルパカ","カピバラ","ハリネズミ","ミーアキャット","コウモリ","フクロウ","カラス","キツネ","タヌキ",
+  "シロクマ","ラッコ","カブトムシ","カマキリ","ミミズ","ウーパールーパー","チョウチンアンコウ","ダイオウイカ","オオサンショウウオ","シーラカンス",
+  "アリクイ","センザンコウ","マンボウ","ハダカデバネズミ","タツノオトシゴ","メンダコ","ハシビロコウ","マレーバク","アイアイ","オニイトマキエイ",
+  "リュウグウノツカイ","食虫植物","ラフレシア","バオバブ","ウツボカズラ","ひまわり","ロマネスコ","カレーライス","オムライス","ハンバーグ",
+  "たこ焼き","お好み焼き","ラーメン","うどん","そば","おにぎり","寿司","茶碗蒸し","肉じゃが","グラタン",
+  "ドリア","ピザ","ハンバーガー","ホットドッグ","フレンチトースト","パンケーキ","シュークリーム","マカロン","わらび餅","たい焼き",
+  "かき氷","チョコレート","ポップコーン","納豆","ドリアン","パイナップル","プリン","パンの耳","傘","扇風機",
+  "冷蔵庫","電子レンジ","洗濯機","掃除機","炊飯器","ドライヤー","アイロン","体温計","目覚まし時計","懐中電灯",
+  "双眼鏡","望遠鏡","虫眼鏡","地球儀","万華鏡","しゃもじ","おたま","栓抜き","缶切り","ホッチキス",
+  "セロハンテープ","消しゴム","コンパス","風呂敷","湯たんぽ","蚊取り線香","だるま","こけし","こたつ","蓄音機",
+  "オルゴール","タイプライター","パチンコ台","自動販売機","ジェットパック","潜水服","歯車","人力車","火炎放射器","火山",
+  "洞窟","滝","砂漠","氷河","オーロラ","虹","竜巻","雪だるま","流れ星","彗星",
+  "ブラックホール","月","土星","太陽","サンゴ礁","マングローブ","間欠泉","鍾乳洞","砂丘","東京タワー",
+  "スカイツリー","ピラミッド","万里の長城","城","神社","水族館","プラネタリウム","遊園地","図書館","美術館",
+  "空港","地下鉄","新幹線","飛行船","潜水艦","気球","ロケット","モノレール","観覧車","トンネル",
+  "灯台","風車","水上コテージ","秘密基地","メリーゴーランド","蒸気機関車","サイドカー","モアイ像","ストーンヘンジ","要塞",
+  "海賊船","幽霊船","神殿","迷路","砂時計","ドーム","時計台","滑り台","氷の洞窟","忍者",
+  "海賊","宇宙飛行士","探偵","魔法使い","サンタクロース","錬金術師","考古学者","寿司職人","マジシャン","騎士",
+  "王様","陰陽師","発明家","占い師","人魚","ドラゴン","ユニコーン","ケンタウロス","吸血鬼","ミイラ男",
+  "フランケンシュタインの怪物","雪男","河童","天狗","クラーケン","グリフォン","ペガサス","サイクロプス","ゴーレム","スライム",
+  "ミノタウロス","フェニックス","ガーゴイル","サッカーボール","バドミントンラケット","卓球台","ボウリングのピン","スキー板","サーフボード","テント",
+  "釣り竿","将棋盤","チェスの駒","トランプ","ルービックキューブ","ジグソーパズル","けん玉","竹馬","タイムマシン","タイムカプセル",
+  "UFO","宇宙人","ロボット","ロボット掃除機","魔法のランプ","宝箱","人工衛星","海底都市","水中トンネル","キノコ",
+  "氷の城","空中庭園","巨大迷宮","ネッシー","仏像","人形","卵","化石","ほうき","ミニチュア"
+];
+
+function getRandomTopics(count = 3) {
+  const shuffled = shuffle(TOPIC_LIST);
+  return shuffled.slice(0, count);
+}
+
+/**
+ * -------------------------------------------------------------
  * カード定義
  * -------------------------------------------------------------
  */
@@ -132,6 +170,7 @@ let roomRef = null;
 
 let localTyping = { inference: '', secretWord: '' };
 let localSelectedCardIndex = 0;
+let localSuggestedTopics = getRandomTopics(3); // お題候補3つ
 const appEl = document.getElementById('app');
 
 const urlParams = new URLSearchParams(window.location.search);
@@ -188,12 +227,13 @@ function renderLakeTrackComponent() {
   const pos = Number(roomData.state?.boatPos) || 0;
   const isReached = pos >= 10;
   const percentage = Math.min(84, Math.max(2, (pos / 10) * 80));
+  const dist = 10 - pos;
 
   return `
     <div class="bg-slate-950/80 border border-sky-800/60 p-3 rounded-2xl shadow-inner mb-3">
       <div class="flex justify-between items-center text-xs font-bold text-sky-300 mb-1.5 px-1">
-        <span>⛵ ボート（位置: ${pos}）</span>
-        <span class="text-slate-400 text-[11px]">${isReached ? '✨ 湖（正解）に到達！' : '正体との距離感'}</span>
+        <span>⛵ ボート</span>
+        <span class="text-amber-400 font-mono text-xs font-extrabold">${isReached ? '✨ 湖（到達！）' : `残り ${dist}m`}</span>
         <span>🦕 ネッシー</span>
       </div>
       <div class="relative w-full h-11 bg-sky-950 rounded-xl border border-sky-700/60 flex items-center px-2 overflow-hidden shadow-inner">
@@ -210,7 +250,7 @@ function renderLakeTrackComponent() {
 }
 
 /**
- * 2つの独立した取材ボード（上が質問カード表、下が推理＆最接近表）
+ * 2つの取材ログ（上が質問カード表、下が推理＆残り距離の表）
  */
 function renderInvestigationLogComponent() {
   const reporters = Object.keys(roomData.players || {}).filter(pid => pid !== roomData.state?.witnessId);
@@ -218,21 +258,17 @@ function renderInvestigationLogComponent() {
   const cardHistory = roomData.state?.cardHistory || {};
   const history = toArray(roomData.state?.history);
 
-  // これまでに進んだ回（#1 〜 現在の回まで）の行リスト
   const roundIndices = [];
-  for (let r = 1; r <= curHintRound; r++) {
-    roundIndices.push(r);
-  }
+  for (let r = 1; r <= curHintRound; r++) roundIndices.push(r);
 
   return `
     <div class="mt-4 space-y-3">
-      <!-- 【上の表】出された質問カード表（リアルタイム更新） -->
+      <!-- 1. 出された質問カードの表 -->
       <div class="bg-slate-950/80 border border-slate-800 rounded-2xl p-3 shadow-md">
         <div class="text-xs font-bold text-amber-300 mb-1.5 flex items-center justify-between">
           <span class="flex items-center gap-1.5"><span>📋</span> 出された質問カードの表（ヒント毎に更新）</span>
           <span class="text-[10px] text-slate-400">現在: ${curHintRound}/5回目</span>
         </div>
-        
         <div class="overflow-x-auto custom-scrollbar">
           <table class="w-full text-center border-collapse text-xs min-w-[280px]">
             <thead>
@@ -260,9 +296,7 @@ function renderInvestigationLogComponent() {
                               <span>${c.icon || '🎴'}</span>
                               <span class="truncate">${escapeHtml(c.attrName || '')}</span>
                             </span>
-                          ` : `
-                            <span class="text-[10px] text-slate-600">─</span>
-                          `}
+                          ` : `<span class="text-[10px] text-slate-600">─</span>`}
                         </td>
                       `;
                     }).join('')}
@@ -274,12 +308,12 @@ function renderInvestigationLogComponent() {
         </div>
       </div>
 
-      <!-- 【下の表】みんなの推理 ＆ 最接近ログの表 -->
+      <!-- 2. みんなの推理 ＆ 残り距離の表 -->
       <div class="bg-slate-950/80 border border-slate-800 rounded-2xl p-3 shadow-md">
-        <div class="text-xs font-bold text-sky-300 mb-2 flex items-center gap-1.5">
-          <span>📝</span> みんなの推理 ＆ 最接近の表
+        <div class="text-xs font-bold text-sky-300 mb-2 flex items-center justify-between">
+          <span class="flex items-center gap-1.5"><span>📝</span> みんなの推理 ＆ 最接近（マスが光る）</span>
+          <span class="text-[10px] text-amber-400 font-bold">黄色＝最接近</span>
         </div>
-        
         <div class="overflow-x-auto custom-scrollbar">
           <table class="w-full text-center border-collapse text-xs min-w-[280px]">
             <thead>
@@ -290,7 +324,7 @@ function renderInvestigationLogComponent() {
                     ${escapeHtml(roomData.players[pid]?.name || '記者')}
                   </th>
                 `).join('')}
-                <th class="py-1.5 px-1 font-black text-amber-400 w-24">最接近★</th>
+                <th class="py-1.5 px-1 font-black text-sky-300 w-24">ネッシーまで</th>
               </tr>
             </thead>
             <tbody class="divide-y divide-slate-800">
@@ -308,13 +342,13 @@ function renderInvestigationLogComponent() {
                       const inf = h.inferences?.[pid];
                       const isClosest = inf?.isClosest;
                       return `
-                        <td class="py-2 px-1 truncate max-w-[75px] ${isClosest ? 'bg-amber-950/60 text-amber-200 font-bold border border-amber-500/40' : 'text-slate-300'}">
+                        <td class="py-2 px-1 truncate max-w-[75px] ${isClosest ? 'bg-amber-950/80 text-amber-200 font-black border border-amber-500 shadow-sm' : 'text-slate-300'}">
                           ${escapeHtml(inf?.text || '─')}
                         </td>
                       `;
                     }).join('')}
-                    <td class="py-2 px-1 font-black text-amber-300 bg-amber-950/20 truncate max-w-[85px]">
-                      ${escapeHtml(h.closestText ? `★ ${h.closestText}` : '─')}
+                    <td class="py-2 px-1 font-mono font-bold text-sky-300 bg-sky-950/30 truncate max-w-[85px]">
+                      ${escapeHtml(h.distanceText || '─')}
                     </td>
                   </tr>
                 `).join('')}
@@ -443,7 +477,7 @@ function renderLobbyScreen() {
           <button onclick="${isHost ? "setGameMode('INSIDER')" : ''}" 
             class="py-2.5 px-3 rounded-xl border text-xs font-bold transition flex flex-col items-center gap-1 ${roomData.mode === 'INSIDER' ? 'bg-purple-600 border-purple-400 text-white shadow-md' : 'bg-slate-800 border-slate-700 text-slate-400'}">
             <span>🕵️ インサイダー</span>
-            <span class="text-[10px] opacity-80">正体＋裏切り者（得点）</span>
+            <span class="text-[10px] opacity-80">正体＋裏切り者（新ルール得点）</span>
           </button>
         </div>
       </div>
@@ -465,7 +499,7 @@ function renderLobbyScreen() {
 }
 
 /**
- * 3. セットアップ画面
+ * 3. セットアップ画面（候補3つ ＆ 再抽選ボタン追加）
  */
 function renderSetupScreen() {
   const isWitness = roomData.state.witnessId === myPlayerId;
@@ -490,7 +524,7 @@ function renderSetupScreen() {
           ${isWitness ? '👀 あなたは【目撃者】です' : isInsider ? '🕵️ あなたは【インサイダー】です' : '📰 あなたは【一般記者】です'}
         </div>
         <p class="text-xs mt-1.5 opacity-90">
-          ${isWitness ? 'ネッシーの正体を決めてください。誰もが知っている名詞にしましょう。' :
+          ${isWitness ? 'ネッシーの正体を決めてください。候補から選ぶか、自由に決められます。' :
             isInsider ? '正体を知りながら、正体がバレないように誘導してください。' :
             '質問を重ねて、ネッシーの正体を暴いてください。'}
         </p>
@@ -498,13 +532,33 @@ function renderSetupScreen() {
 
       ${isWitness ? `
         <div class="space-y-4 bg-slate-900/80 p-4 rounded-2xl border border-slate-700">
+          <!-- お題候補3つと再抽選ボタン -->
           <div>
-            <label class="block text-xs font-bold text-slate-300 mb-1">ネッシーの正体（例: パイナップル、タイヤ、信号機）</label>
+            <div class="flex items-center justify-between mb-2">
+              <span class="text-xs font-bold text-slate-300">💡 おすすめの候補（タップで決定）</span>
+              <button onclick="handleRerollTopics()" class="text-[11px] text-amber-400 hover:text-amber-300 font-bold flex items-center gap-1 active:scale-95">
+                <span>🔄</span> 候補を再抽選
+              </button>
+            </div>
+            <div class="grid grid-cols-3 gap-1.5">
+              ${localSuggestedTopics.map(t => `
+                <button onclick="selectSuggestedTopic('${escapeHtml(t)}')" 
+                  class="p-2.5 bg-slate-800 hover:bg-amber-950 border border-slate-700 hover:border-amber-500 rounded-xl text-xs font-bold text-slate-200 truncate transition active:scale-95">
+                  ${escapeHtml(t)}
+                </button>
+              `).join('')}
+            </div>
+          </div>
+
+          <!-- 自由入力欄 -->
+          <div>
+            <label class="block text-xs font-bold text-slate-300 mb-1">自分で決める場合 / 選択中のお題</label>
             <input id="inputSecretWord" type="text" maxlength="20" placeholder="正体の言葉" 
               value="${escapeHtml(localTyping.secretWord)}"
               oninput="localTyping.secretWord = this.value"
               class="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-3 text-sm focus:border-amber-500 outline-none">
           </div>
+
           <button onclick="submitSetup()" class="w-full bg-amber-600 hover:bg-amber-500 active:scale-95 text-slate-950 font-black py-3.5 rounded-xl transition shadow-lg text-sm">
             正体を決定して調査開始！
           </button>
@@ -520,8 +574,20 @@ function renderSetupScreen() {
   `;
 }
 
+function selectSuggestedTopic(topic) {
+  localTyping.secretWord = topic;
+  const inputEl = document.getElementById('inputSecretWord');
+  if (inputEl) inputEl.value = topic;
+  showToast(`「${topic}」を選びました！`);
+}
+
+function handleRerollTopics() {
+  localSuggestedTopics = getRandomTopics(3);
+  render();
+}
+
 /**
- * 4. 質問画面（ボタン2回 ＆ リアルタイム表更新）
+ * 4. 質問画面
  */
 function renderQuestionScreen() {
   const isWitness = roomData.state.witnessId === myPlayerId;
@@ -563,7 +629,6 @@ function renderQuestionScreen() {
                 <p class="text-xs text-slate-400 mt-0.5">3枚の中から使うカードを1枚選んでください</p>
               </div>
 
-              <!-- 3枚の候補 -->
               <div class="space-y-2">
                 ${threeCards.map((c, idx) => `
                   <button onclick="selectCardOption(${idx})" 
@@ -587,7 +652,6 @@ function renderQuestionScreen() {
                 `).join('')}
               </div>
 
-              <!-- ボタン1回目 -->
               <div class="pt-2">
                 <button onclick="handleShareSelectedCard()" class="w-full bg-emerald-600 hover:bg-emerald-500 active:scale-95 text-white font-black py-3.5 rounded-xl shadow-lg text-sm">
                   📢 このカードで質問する（みんなに共有）
@@ -632,7 +696,6 @@ function renderQuestionScreen() {
                   `${escapeHtml(askerName)} が目撃者に口頭で質問しています。やり取りを聞いて推理に役立てましょう！`}
               </p>
 
-              <!-- ボタン2回目 -->
               ${isMyTurn ? `
                 <button onclick="handleFinishQuestionTurn()" class="w-full bg-emerald-600 hover:bg-emerald-500 active:scale-95 text-white font-black py-3.5 rounded-xl shadow-lg text-sm">
                   ✓ 質問完了！（次の人に交代）
@@ -650,7 +713,7 @@ function renderQuestionScreen() {
         ` : ''}
       </div>
 
-      <!-- 2つの取材ログ（常時表示） -->
+      <!-- 2つの取材ログ -->
       ${renderInvestigationLogComponent()}
     </div>
   `;
@@ -661,9 +724,6 @@ function selectCardOption(idx) {
   render();
 }
 
-/**
- * ボタン1回目: カードを決定し、全員に共有 ＆ 上の表にリアルタイム登録
- */
 function handleShareSelectedCard(forceIdx = null) {
   const threeCards = toArray(roomData.state?.threeCards);
   const chosenIdx = forceIdx !== null ? forceIdx : localSelectedCardIndex;
@@ -673,7 +733,6 @@ function handleShareSelectedCard(forceIdx = null) {
   const curIdx = Number(roomData.state?.currentQuestionIndex) || 0;
   const askerId = queue[curIdx] || myPlayerId;
 
-  // 上の表（cardHistory）にリアルタイムで即座に追加！
   const updates = {};
   updates['state/phase'] = 'QUESTION_ORAL';
   updates['state/currentQuestionCard'] = selectedCard;
@@ -682,9 +741,6 @@ function handleShareSelectedCard(forceIdx = null) {
   roomRef.update(updates);
 }
 
-/**
- * ボタン2回目: 質問終了して交代
- */
 function handleFinishQuestionTurn() {
   const queue = toArray(roomData.state?.questionQueue);
   const curIdx = Number(roomData.state?.currentQuestionIndex) || 0;
@@ -772,7 +828,6 @@ function renderInferenceInputScreen() {
         `}
       </div>
 
-      <!-- 2つの取材ログ（常時表示） -->
       ${renderInvestigationLogComponent()}
     </div>
   `;
@@ -847,7 +902,6 @@ function renderInferenceJudgeScreen() {
         ` : ''}
       </div>
 
-      <!-- 2つの取材ログ（常時表示） -->
       ${renderInvestigationLogComponent()}
     </div>
   `;
@@ -859,6 +913,7 @@ function renderInferenceJudgeScreen() {
 function renderShipMoveScreen() {
   const isWitness = roomData.state.witnessId === myPlayerId;
   const currentPos = Number(roomData.state.boatPos) || 0;
+  const dist = 10 - currentPos;
 
   appEl.innerHTML = `
     <div class="space-y-3">
@@ -871,7 +926,7 @@ function renderShipMoveScreen() {
             ${isWitness ? '出た推理に合わせてボートを動かしてください' : '目撃者がボートの距離を調整中...'}
           </h3>
           <p class="text-xs text-slate-400 mt-1">
-            ${isWitness ? '良い推理があれば近づけ、的外れなら離します' : 'ボートが近づくほど正解に近づいています！'}
+            ${isWitness ? '良い推理があれば近づけ、的外れなら離します' : `現在の位置: 残り ${dist}m`}
           </p>
         </div>
 
@@ -896,7 +951,7 @@ function renderShipMoveScreen() {
             </div>
 
             <button onclick="confirmBoatMoveAndProceed()" class="w-full mt-2 bg-emerald-600 hover:bg-emerald-500 active:scale-95 text-white font-black py-3.5 rounded-xl shadow-lg text-sm">
-              ボートの位置を確定して次のヒントへ
+              ボートの位置を確定して次へ進む
             </button>
           </div>
         ` : `
@@ -904,7 +959,6 @@ function renderShipMoveScreen() {
         `}
       </div>
 
-      <!-- 2つの取材ログ（常時表示） -->
       ${renderInvestigationLogComponent()}
     </div>
   `;
@@ -974,7 +1028,6 @@ function renderScoopVoteGuesserScreen() {
         `}
       </div>
 
-      <!-- 2つの取材ログ（常時表示） -->
       ${renderInvestigationLogComponent()}
     </div>
   `;
@@ -1043,21 +1096,20 @@ function renderScoopResultGuesserScreen() {
           <p class="text-xs opacity-90 leading-relaxed">
             正解者への投票数: <b>${correctTargetVotes}票</b> / 必要数: <b>${threshold}票</b>（記者の半数超）<br>
             ${isGuesserIdentified ? 
-              (roomData.mode === 'INSIDER' ? '第2段階：インサイダー当て投票へ進みます！' : '記者チームの勝利です！') : 
-              '正体は永遠の謎となり、目撃者の勝利です！'}
+              (roomData.mode === 'INSIDER' ? 'インサイダー特定（投票）へ進みます！' : '記者チームの勝利です！') : 
+              (roomData.mode === 'INSIDER' ? '正体特定失敗ですが、インサイダー投票へ進みます！' : '正体は永遠の謎となり、目撃者の勝利です！')}
           </p>
         </div>
 
         ${isHost ? `
           <button onclick="handleProceedAfterGuesserVote(${isGuesserIdentified})" class="w-full bg-emerald-600 hover:bg-emerald-500 active:scale-95 text-white font-black py-3.5 rounded-xl shadow-lg text-sm">
-            ${roomData.mode === 'INSIDER' && isGuesserIdentified ? 'インサイダー投票へ進む ➔' : 'ラウンド結果へ進む ➔'}
+            ${roomData.mode === 'INSIDER' ? 'インサイダー投票へ進む ➔' : 'ラウンド結果へ進む ➔'}
           </button>
         ` : `
           <div class="text-xs text-slate-400 animate-pulse">隊長が次へ進めるのを待機中...</div>
         `}
       </div>
 
-      <!-- 2つの取材ログ（常時表示） -->
       ${renderInvestigationLogComponent()}
     </div>
   `;
@@ -1078,6 +1130,7 @@ function renderInsiderVoteScreen() {
         <span class="text-4xl inline-block">🕵️🔍</span>
         <h2 class="text-xl font-black text-purple-300">インサイダーを暴け！</h2>
         <p class="text-xs text-slate-300">裏切り者は誰だ？ 秘密投票を行ってください。</p>
+        <p class="text-[11px] text-amber-400">※正しくインサイダーを指名した人全員にボーナス+1点！</p>
       </div>
 
       ${!myVote ? `
@@ -1191,16 +1244,23 @@ function renderRoundResultScreen() {
       </div>
 
       <div class="space-y-2 text-left">
-        <span class="text-xs font-bold text-slate-300">${isNormal ? '現在の累計正解数:' : '現在の獲得得点:'}</span>
+        <span class="text-xs font-bold text-slate-300">${isNormal ? '現在の累計正解数:' : '今回獲得した得点（累計合計）:'}</span>
         <div class="space-y-1.5">
-          ${Object.values(roomData.players || {}).map(p => `
-            <div class="flex justify-between items-center p-2.5 bg-slate-900 rounded-xl text-xs">
-              <span class="font-bold text-slate-200">${escapeHtml(p.name)}</span>
-              <span class="font-black text-emerald-400 font-mono text-sm">
-                ${isNormal ? `${p.correctCount || 0} 問` : `+${p.score || 0} 点`}
-              </span>
-            </div>
-          `).join('')}
+          ${Object.values(roomData.players || {}).map(p => {
+            const roundScore = res?.scores?.[p.id];
+            const detail = res?.scoreDetails?.[p.id];
+            return `
+              <div class="p-2.5 bg-slate-900 rounded-xl text-xs space-y-0.5">
+                <div class="flex justify-between items-center">
+                  <span class="font-bold text-slate-200">${escapeHtml(p.name)}</span>
+                  <span class="font-black text-emerald-400 font-mono text-sm">
+                    ${isNormal ? `${p.correctCount || 0} 問` : `${p.score || 0} 点 (今回: ${roundScore >= 0 ? '+' : ''}${roundScore ?? 0}点)`}
+                  </span>
+                </div>
+                ${detail ? `<div class="text-[10px] text-slate-400">${detail}</div>` : ''}
+              </div>
+            `;
+          }).join('')}
         </div>
       </div>
 
@@ -1377,10 +1437,13 @@ function startNewWitnessGame(playedWitnesses = []) {
   const nonWitnesses = allPids.filter(pid => pid !== nextWitnessId);
   const insiderId = nonWitnesses[Math.floor(Math.random() * nonWitnesses.length)];
 
+  localSuggestedTopics = getRandomTopics(3);
+  localTyping.secretWord = '';
+
   roomRef.update({
     'state': {
       phase: 'SETUP',
-      hintRound: 1, // ★1回目に完全リセット！
+      hintRound: 1,
       playedWitnesses: newPlayedList,
       witnessId: nextWitnessId,
       insiderId: insiderId,
@@ -1391,16 +1454,17 @@ function startNewWitnessGame(playedWitnesses = []) {
       threeCards: [],
       inferences: {},
       history: [],
-      cardHistory: {}, // 上の表のログ（リアルタイム記録用）
+      cardHistory: {},
       guesserVotes: {},
-      votes: {}
+      votes: {},
+      secretRevealed: false
     }
   });
 }
 
 function submitSetup() {
   const word = localTyping.secretWord.trim();
-  if (!word) return showToast('正体の言葉を入力してください');
+  if (!word) return showToast('正体の言葉を入力するか候補を選んでください');
 
   const pids = Object.keys(roomData.players || {});
   const witnessId = roomData.state.witnessId;
@@ -1419,7 +1483,8 @@ function submitSetup() {
     threeCards: drawnCards.cards,
     markedDeck: drawnCards.deck,
     currentQuestionCard: null,
-    inferences: {}
+    inferences: {},
+    secretRevealed: false
   });
 }
 
@@ -1474,20 +1539,20 @@ function finishJudging() {
   if (hasUnjudged) return showToast('全員の回答に⭕または❌をつけてください');
 
   let closestText = '';
-  let closestName = '';
   Object.entries(inferences).forEach(([pid, inf]) => {
-    if (inf.isClosest) {
-      closestText = inf.text;
-      closestName = roomData.players[pid]?.name || '';
-    }
+    if (inf.isClosest) closestText = inf.text;
   });
+
+  const curPos = Number(roomData.state.boatPos) || 0;
+  const dist = 10 - curPos;
+  const distanceText = dist <= 0 ? '到達！' : `残り ${dist}m`;
 
   const currentHistory = toArray(roomData.state?.history);
   const newLogEntry = {
     hintRound: roomData.state.hintRound,
     inferences: inferences,
     closestText: closestText,
-    closestName: closestName
+    distanceText: distanceText
   };
   const updatedHistory = [...currentHistory, newLogEntry];
 
@@ -1518,7 +1583,18 @@ function confirmBoatMoveAndProceed() {
   const curHintRound = Number(roomData.state.hintRound) || 1;
 
   if (curHintRound >= 5) {
-    applyRoundResults(false, []);
+    // 5ヒント終了で正解が出なかった場合
+    if (roomData.mode === 'INSIDER') {
+      // インサイダーモード：正体未発表でも必ずインサイダー特定（投票）へ進む！
+      roomRef.child('state').update({
+        secretRevealed: false,
+        phase: 'INSIDER_VOTE',
+        votes: {}
+      });
+    } else {
+      // 通常ネッシーモード：終了
+      applyRoundResults(false, []);
+    }
   } else {
     const pids = Object.keys(roomData.players || {});
     const nonWitnesses = pids.filter(id => id !== roomData.state.witnessId);
@@ -1557,11 +1633,12 @@ function handleProceedAfterGuesserVote(isGuesserIdentified) {
     .map(([pid]) => pid);
 
   if (roomData.mode === 'INSIDER') {
-    if (isGuesserIdentified) {
-      roomRef.child('state').update({ phase: 'INSIDER_VOTE', votes: {} });
-    } else {
-      applyInsiderScores('GUESSER_FAILED');
-    }
+    // インサイダーモード：正体発表あり/なしを記録してインサイダー投票へ進む！
+    roomRef.child('state').update({
+      secretRevealed: isGuesserIdentified,
+      phase: 'INSIDER_VOTE',
+      votes: {}
+    });
   } else {
     applyRoundResults(isGuesserIdentified, correctPids);
   }
@@ -1581,7 +1658,117 @@ function handleSubmitInsiderVote(targetPid) {
 function handleResolveInsiderRound(accusedPid) {
   const actualInsiderId = roomData.state.insiderId;
   const isInsiderCaught = (accusedPid === actualInsiderId);
-  applyInsiderScores(isInsiderCaught ? 'INSIDER_CAUGHT' : 'INSIDER_ESCAPED');
+  const secretRevealed = !!roomData.state.secretRevealed;
+  applyNewInsiderScores(secretRevealed, isInsiderCaught);
+}
+
+/**
+ * 画像に基づくインサイダーモード新得点計算（基本得点 ＋ 個人ボーナス）
+ */
+function applyNewInsiderScores(hasSecretRevealed, isInsiderCaught) {
+  const actualInsiderId = roomData.state.insiderId;
+  const witnessId = roomData.state.witnessId;
+  const pids = Object.keys(roomData.players);
+  const votes = roomData.state.votes || {};
+
+  // 正体を正解した通常記者（インサイダー以外）
+  const correctRegularReporters = Object.entries(roomData.state.inferences || {})
+    .filter(([pid, inf]) => inf.isCorrect && pid !== witnessId && pid !== actualInsiderId)
+    .map(([pid]) => pid);
+
+  const roundScores = {};
+  const scoreDetails = {};
+  pids.forEach(pid => {
+    roundScores[pid] = 0;
+    scoreDetails[pid] = [];
+  });
+
+  // 1. 基本得点（4パターン）
+  let patternText = '';
+  if (hasSecretRevealed && !isInsiderCaught) {
+    // ① 正体発表あり・インサイダー潜伏成功 (目撃者:0, 通常記者:+1, インサイダー:+3)
+    patternText = '① 正体発表あり・インサイダー潜伏成功';
+    pids.forEach(pid => {
+      if (pid === actualInsiderId) {
+        roundScores[pid] += 3;
+        scoreDetails[pid].push('基本点: +3');
+      } else if (pid !== witnessId) {
+        roundScores[pid] += 1;
+        scoreDetails[pid].push('基本点: +1');
+      } else {
+        scoreDetails[pid].push('基本点: 0');
+      }
+    });
+  } else if (hasSecretRevealed && isInsiderCaught) {
+    // ② 正体発表あり・インサイダー発覚 (目撃者:0, 通常記者:+1, インサイダー:-1)
+    patternText = '② 正体発表あり・インサイダー発覚';
+    pids.forEach(pid => {
+      if (pid === actualInsiderId) {
+        roundScores[pid] -= 1;
+        scoreDetails[pid].push('基本点: -1');
+      } else if (pid !== witnessId) {
+        roundScores[pid] += 1;
+        scoreDetails[pid].push('基本点: +1');
+      } else {
+        scoreDetails[pid].push('基本点: 0');
+      }
+    });
+  } else if (!hasSecretRevealed && !isInsiderCaught) {
+    // ③ 正体発表なし・インサイダー潜伏成功 (全員0点)
+    patternText = '③ 正体発表なし・インサイダー潜伏成功';
+    pids.forEach(pid => {
+      scoreDetails[pid].push('基本点: 0');
+    });
+  } else {
+    // ④ 正体発表なし・インサイダー発覚 (目撃者:0, 通常記者:0, インサイダー:-2)
+    patternText = '④ 正体発表なし・インサイダー発覚';
+    pids.forEach(pid => {
+      if (pid === actualInsiderId) {
+        roundScores[pid] -= 2;
+        scoreDetails[pid].push('基本点: -2');
+      } else {
+        scoreDetails[pid].push('基本点: 0');
+      }
+    });
+  }
+
+  // 2. 個人ボーナス加算
+  // ボーナスA: 正体を正解した通常記者 (+1点)
+  if (hasSecretRevealed) {
+    correctRegularReporters.forEach(pid => {
+      roundScores[pid] += 1;
+      scoreDetails[pid].push('正解ボーナス: +1');
+    });
+  }
+
+  // ボーナスB: インサイダーを正しく指名した人 (+1点)（目撃者・通常記者が対象）
+  Object.entries(votes).forEach(([voterPid, targetPid]) => {
+    if (voterPid !== actualInsiderId && targetPid === actualInsiderId) {
+      roundScores[voterPid] += 1;
+      scoreDetails[voterPid].push('指名ボーナス: +1');
+    }
+  });
+
+  const finalDetails = {};
+  pids.forEach(pid => {
+    finalDetails[pid] = scoreDetails[pid].join(' / ');
+  });
+
+  // スコアの更新
+  const updates = {};
+  pids.forEach(pid => {
+    const cur = roomData.players[pid]?.score || 0;
+    updates[`players/${pid}/score`] = cur + roundScores[pid];
+  });
+
+  updates['state/phase'] = 'ROUND_RESULT';
+  updates['state/roundSummary'] = {
+    scores: roundScores,
+    scoreDetails: finalDetails,
+    reason: `${patternText} （インサイダー: ${roomData.players[actualInsiderId]?.name}）`
+  };
+
+  roomRef.update(updates);
 }
 
 function applyRoundResults(isSuccess, correctPids) {
@@ -1599,40 +1786,6 @@ function applyRoundResults(isSuccess, correctPids) {
 
   updates['state/phase'] = 'ROUND_RESULT';
   updates['state/roundSummary'] = { reason: reason };
-  roomRef.update(updates);
-}
-
-function applyInsiderScores(outcome) {
-  const actualInsiderId = roomData.state.insiderId;
-  const witnessId = roomData.state.witnessId;
-  const scores = {};
-  let reason = '';
-
-  Object.keys(roomData.players).forEach(pid => {
-    if (outcome === 'GUESSER_FAILED') {
-      scores[pid] = (pid === witnessId) ? 2 : 0;
-      reason = '正解者を特定できませんでした。（目撃者に2点）';
-    } else if (outcome === 'INSIDER_CAUGHT') {
-      if (pid === witnessId) scores[pid] = 1;
-      else if (pid === actualInsiderId) scores[pid] = 0;
-      else scores[pid] = 2;
-      reason = `インサイダー（${roomData.players[actualInsiderId]?.name}）の特定に成功！`;
-    } else {
-      if (pid === witnessId) scores[pid] = 0;
-      else if (pid === actualInsiderId) scores[pid] = 2;
-      else scores[pid] = 1;
-      reason = `インサイダー逃亡！（正解は ${roomData.players[actualInsiderId]?.name} でした）`;
-    }
-  });
-
-  const updates = {};
-  Object.entries(scores).forEach(([pid, pts]) => {
-    const cur = roomData.players[pid]?.score || 0;
-    updates[`players/${pid}/score`] = cur + pts;
-  });
-
-  updates['state/phase'] = 'ROUND_RESULT';
-  updates['state/roundSummary'] = { scores: scores, reason: reason };
   roomRef.update(updates);
 }
 
