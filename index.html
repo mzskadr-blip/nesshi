@@ -3,1678 +3,1004 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>ネッシーの正体オンライン</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com">
-  <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;700;800;900&display=swap" rel="stylesheet">
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+  <title>🐈にゃんこ煩悩大暴走‼️</title>
+  <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
   <style>
-    body { font-family: 'M PLUS Rounded 1c', sans-serif; user-select: none; -webkit-tap-highlight-color: transparent; }
-    .custom-scrollbar::-webkit-scrollbar { width: 4px; height: 4px; }
-    .custom-scrollbar::-webkit-scrollbar-thumb { background: #64748b; border-radius: 4px; }
+    :root {
+      --bg: #fdfbf7;
+      --card-bg: #ffffff;
+      --primary-blue: #0284c7;
+      --primary-green: #059669;
+      --primary-orange: #ea580c;
+      --text-main: #0f172a;
+      --text-sub: #64748b;
+      --danger: #dc2626;
+      --fever-color: #ec4899;
+      --border: #e2e8f0;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Hiragino Sans', 'Segoe UI', Roboto, sans-serif; }
+    body { background-color: var(--bg); color: var(--text-main); min-height: 100vh; display: flex; flex-direction: column; align-items: center; overflow-x: hidden; }
+
+    header { width: 100%; max-width: 500px; padding: 12px 16px; display: flex; justify-content: space-between; align-items: center; background: #fff; border-bottom: 1px solid var(--border); }
+    .header-title { font-size: 16px; font-weight: 900; color: var(--primary-orange); }
+    .btn-help { background: #f1f5f9; color: var(--text-sub); border: 1px solid var(--border); padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: bold; }
+
+    .container { width: 100%; max-width: 500px; padding: 16px; display: flex; flex-direction: column; gap: 14px; flex: 1; position: relative; }
+    .app-title-big { text-align: center; font-size: 26px; font-weight: 900; color: var(--primary-orange); margin: 6px 0 12px 0; }
+    .panel { background: var(--card-bg); border-radius: 14px; padding: 16px; border: 1px solid var(--border); box-shadow: 0 2px 8px rgba(0,0,0,0.03); display: flex; flex-direction: column; gap: 10px; }
+    .panel-title { font-size: 15px; font-weight: 800; color: var(--primary-blue); }
+    .panel-title-green { color: var(--primary-green); }
+    .input-label { font-size: 12px; font-weight: 700; color: var(--text-main); }
+    .input-box { width: 100%; padding: 12px 14px; border-radius: 8px; border: 1px solid #cbd5e1; background: #fff; font-size: 15px; outline: none; }
+    
+    .btn-main-blue, .btn-main-green { width: 100%; padding: 13px; border-radius: 8px; color: #fff; font-weight: 800; border: none; cursor: pointer; font-size: 15px; }
+    .btn-main-blue { background: var(--primary-blue); }
+    .btn-main-green { background: var(--primary-green); }
+    .btn-copy { background: #ffedd5; color: #c2410c; border: 1px solid #fed7aa; padding: 6px 10px; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: 800; }
+
+    .story-card { background: #fff; border: 2px dashed #fed7aa; border-radius: 16px; padding: 18px 16px; line-height: 1.8; font-size: 13.5px; color: #334155; }
+    .story-title { font-size: 15px; font-weight: 900; color: var(--primary-orange); margin-bottom: 10px; }
+    .story-text p { margin-bottom: 8px; }
+    .story-highlight { font-weight: 800; color: #c2410c; background: #fff7ed; padding: 1px 5px; border-radius: 4px; }
+
+    .board-center { padding: 14px 16px; background: #fff; border-radius: 16px; border: 2px solid var(--border); box-shadow: 0 4px 12px rgba(0,0,0,0.04); text-align: center; }
+    .board-center.fever-mode { border-color: var(--fever-color); background: #fdf2f8; box-shadow: 0 0 18px rgba(236,72,153,0.3); }
+    .board-split { display: flex; align-items: center; justify-content: space-around; margin: 10px 0; gap: 12px; }
+    .board-left, .board-right { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+    
+    .limit-badge { font-size: 12px; font-weight: 800; padding: 3px 10px; border-radius: 12px; background: #fee2e2; color: #b91c1c; display: inline-block; margin-bottom: 2px; }
+    .limit-badge.fever { background: #fbcfe8; color: #be185d; animation: pulse 1s infinite alternate; }
+    @keyframes pulse { 0% { transform: scale(1); } 100% { transform: scale(1.06); } }
+
+    .counter-value { font-size: 60px; font-weight: 900; line-height: 1; margin: 4px 0; }
+    .counter-normal { color: var(--primary-orange); }
+    .counter-danger { color: var(--danger); }
+    .status-badge { display: inline-block; padding: 4px 10px; border-radius: 14px; font-size: 12px; background: #f1f5f9; font-weight: 700; color: var(--text-sub); }
+
+    .table-card-box {
+      width: 86px; height: 120px; border-radius: 10px; border: 2px solid #cbd5e1; background: #fff;
+      position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    }
+    .table-card-box.card-pop { animation: popIn 0.3s cubic-bezier(0.18, 0.89, 0.32, 1.28); }
+    @keyframes popIn { 0% { transform: scale(0.8); } 70% { transform: scale(1.08); } 100% { transform: scale(1); } }
+    .player-tag { font-size: 11px; font-weight: 800; color: #475569; background: #f1f5f9; padding: 2px 8px; border-radius: 10px; margin-top: 4px; max-width: 120px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+    .players-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 8px; }
+    .player-card { background: #fff; padding: 10px 8px; border-radius: 10px; border: 2px solid var(--border); text-align: center; }
+    .player-card.active { border-color: var(--primary-orange); background: #fff7ed; transform: scale(1.02); }
+    .player-card.dead { background: #f1f5f9; opacity: 0.6; border-color: #cbd5e1; }
+    .log-box { font-size: 13px; color: #334155; background: #fff; padding: 10px; border-radius: 8px; border: 1px solid var(--border); text-align: center; min-height: 42px; display: flex; align-items: center; justify-content: center; font-weight: 700; }
+
+    .hand-container { position: sticky; bottom: 0; background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(8px); padding: 10px 0 16px 0; border-top: 1px solid var(--border); z-index: 10; }
+    .hand-cards { display: flex; justify-content: center; gap: 8px; overflow-x: auto; padding: 4px; }
+    .game-card { width: 96px; height: 136px; border-radius: 12px; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 4px; font-weight: 800; cursor: pointer; border: 2px solid rgba(0,0,0,0.1); box-shadow: 0 4px 8px rgba(0,0,0,0.08); position: relative; background: #fff; }
+    .game-card:hover:not(.disabled) { transform: translateY(-6px); }
+    .game-card.disabled { opacity: 0.4; cursor: not-allowed; }
+    
+    .card-corner-badge { position: absolute; top: 4px; right: 4px; background: rgba(15, 23, 42, 0.88); color: #fff; font-size: 11px; font-weight: 900; padding: 2px 6px; border-radius: 6px; z-index: 3; }
+    .card-corner-badge.badge-calc { background: #7c3aed; }
+    .card-corner-badge.badge-fever { background: #ec4899; }
+    .card-corner-badge.badge-danger { background: #dc2626; }
+
+    .card-img-square-box { width: 86px; height: 86px; display: flex; justify-content: center; align-items: center; margin-top: 14px; }
+    .card-inner-img { width: 100%; height: 100%; object-fit: contain; pointer-events: none; border-radius: 8px; }
+
+    .card-num { background-color: #2563eb; color: #fff; }
+    .card-minus { background-color: #059669; color: #fff; }
+    .card-special { background-color: #d97706; color: #fff; }
+    .card-calc { background-color: #7c3aed; color: #fff; }
+    .card-fever { background: linear-gradient(135deg, #ec4899, #f43f5e, #fbbf24); color: #fff; border: 2px solid #fff; }
+    .card-val { font-size: 24px; text-align: center; margin: auto 0; font-weight: 900; }
+
+    .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); display: none; align-items: center; justify-content: center; padding: 16px; z-index: 100; }
+    .modal-box { background: #fff; max-width: 440px; width: 100%; border-radius: 14px; padding: 20px; max-height: 85vh; overflow-y: auto; }
+    .modal-box h3 { color: var(--primary-orange); margin-bottom: 12px; }
+    .modal-box p, .modal-box li { font-size: 13px; color: var(--text-main); line-height: 1.6; margin-bottom: 6px; }
+    .modal-box ul { padding-left: 18px; margin-bottom: 14px; }
+    .btn-close { width: 100%; padding: 10px; background: #64748b; color: #fff; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; }
+
+    /* 演出レイヤー */
+    .cutin-overlay { position: fixed; inset: 0; z-index: 999; display: none; align-items: center; justify-content: center; flex-direction: column; pointer-events: none; overflow: hidden; }
+    .fever-bg { background: radial-gradient(circle, rgba(236,72,153,0.92) 0%, rgba(17,24,39,0.95) 100%); }
+    .speed-lines { position: absolute; inset: 0; background: repeating-conic-gradient(from 0deg, transparent 0deg 8deg, rgba(255,255,255,0.12) 8deg 15deg); animation: spinLines 3s linear infinite; }
+    @keyframes spinLines { 0% { transform: scale(1.5) rotate(0deg); } 100% { transform: scale(1.5) rotate(360deg); } }
+
+    .brain-wrapper { position: relative; width: 180px; height: 160px; display: flex; justify-content: center; align-items: center; margin-bottom: 15px; }
+    .brain-half { width: 85px; height: 140px; background: #f472b6; border: 4px solid #fff; position: absolute; transition: transform 0.4s cubic-bezier(0.18, 0.89, 0.32, 1.28); }
+    .brain-left { border-radius: 70px 10px 10px 70px; left: 5px; transform-origin: left bottom; }
+    .brain-right { border-radius: 10px 70px 70px 10px; right: 5px; transform-origin: right bottom; }
+    .brain-wrapper.open .brain-left { transform: translateX(-60px) rotate(-35deg); }
+    .brain-wrapper.open .brain-right { transform: translateX(60px) rotate(35deg); }
+    .brain-cat-core { font-size: 64px; position: absolute; opacity: 0; transform: scale(0.2); transition: all 0.5s cubic-bezier(0.18, 0.89, 0.32, 1.28); }
+    .brain-wrapper.open .brain-cat-core { opacity: 1; transform: scale(1.2); }
+
+    .fever-title { font-size: 34px; font-weight: 900; color: #fff; text-shadow: 0 0 16px #ec4899; text-align: center; transform: scale(0.7); opacity: 0; transition: all 0.3s cubic-bezier(0.18, 0.89, 0.32, 1.28); }
+    .fever-subtitle { font-size: 20px; font-weight: 800; color: #fde047; margin-top: 4px; letter-spacing: 2px; }
+    .fever-title.show { transform: scale(1); opacity: 1; }
+
+    /* 煩悩崩壊 演出 */
+    .gameover-bg { background: rgba(10, 15, 29, 0.96); animation: redFlash 0.35s ease-out; }
+    @keyframes redFlash { 0% { background: rgba(220, 38, 38, 0.95); } 100% { background: rgba(10, 15, 29, 0.96); } }
+    .shake-screen { animation: screenShake 0.45s ease-in-out; }
+    @keyframes screenShake {
+      0%, 100% { transform: translate(0, 0); }
+      20% { transform: translate(-12px, 10px) rotate(-1.5deg); }
+      40% { transform: translate(12px, -10px) rotate(1.5deg); }
+      60% { transform: translate(-8px, 6px); }
+      80% { transform: translate(8px, -6px); }
+    }
+    .collapse-img-box {
+      width: 100%; display: flex; justify-content: center; align-items: center; margin-bottom: 12px;
+      animation: zoomBang 0.4s cubic-bezier(0.18, 0.89, 0.32, 1.28) forwards;
+    }
+    @keyframes zoomBang { 0% { transform: scale(0.35); opacity: 0; } 70% { transform: scale(1.15); opacity: 1; } 100% { transform: scale(1); } }
+    .collapse-asset-img {
+      width: 88%; max-width: 420px; max-height: 250px; object-fit: contain;
+      filter: drop-shadow(0 0 5px #ffffff) drop-shadow(0 0 16px #ef4444) drop-shadow(0 0 32px #dc2626);
+    }
+    .collapse-title { font-size: 52px; font-weight: 900; color: #ef4444; text-shadow: 0 0 25px rgba(239,68,68,0.9), 0 0 10px #fff; text-align: center; }
+    .collapse-loser-box {
+      background: rgba(0, 0, 0, 0.45); border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 12px;
+      padding: 10px 20px; text-align: center; margin-top: 4px; box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    }
+    .collapse-loser { color: #fde047; font-size: 20px; font-weight: 900; }
+    .collapse-desc { font-size: 13px; color: #cbd5e1; font-weight: 700; margin-top: 3px; }
   </style>
 </head>
-<body class="bg-slate-900 text-slate-100 min-h-screen flex flex-col justify-between antialiased">
-
-  <header class="bg-emerald-950/90 border-b border-emerald-800/60 px-4 py-3 flex items-center justify-between sticky top-0 z-50">
-    <div class="flex items-center space-x-2">
-      <span class="text-2xl">🦕</span>
-      <h1 class="font-black text-base sm:text-lg tracking-wider text-emerald-300">ネッシーの正体</h1>
+<body>
+  <div id="feverOverlay" class="cutin-overlay fever-bg">
+    <div class="speed-lines"></div>
+    <div id="brainBox" class="brain-wrapper">
+      <div class="brain-half brain-left"></div>
+      <div class="brain-half brain-right"></div>
+      <div class="brain-cat-core">🐱✨</div>
     </div>
-    <div id="headerInfo" class="text-xs flex items-center gap-2"></div>
+    <div id="feverTitleBox" class="fever-title">
+      <div id="feverImgContainer"></div>
+      <div id="feverDefaultText">煩悩暴走‼️<br><span class="fever-subtitle">NYANKO FEVER!! (上限 222)</span></div>
+    </div>
+  </div>
+
+  <div id="collapseOverlay" class="cutin-overlay gameover-bg">
+    <div id="collapseImgContainer" class="collapse-img-box"></div>
+    <div id="collapseDefaultText" class="collapse-title">煩悩崩壊</div>
+    <div class="collapse-loser-box">
+      <div id="collapseLoserName" class="collapse-loser"></div>
+      <div id="collapseDescText" class="collapse-desc">煩悩上限を超過しました！</div>
+    </div>
+    <div id="collapseSubNotice" style="font-size: 12px; color: #94a3b8; margin-top: 14px;">まもなく自動で次のラウンドが始まります...</div>
+  </div>
+
+  <header>
+    <div class="header-title">🐈にゃんこ煩悩大暴走‼️</div>
+    <button class="btn-help" onclick="toggleModal('rulesModal')">ルール説明</button>
   </header>
 
-  <main id="app" class="flex-1 w-full max-w-lg mx-auto p-4 flex flex-col justify-center pb-24"></main>
+  <div class="container" id="mainContainer">
+    <div id="lobbyScreen" style="display: flex; flex-direction: column; gap: 14px;">
+      <h1 class="app-title-big">🐈にゃんこ煩悩大暴走‼️</h1>
 
-  <div id="toast" class="fixed bottom-4 left-1/2 -translate-x-1/2 bg-rose-600 text-white text-xs font-bold px-4 py-2.5 rounded-full shadow-2xl opacity-0 transition-opacity pointer-events-none z-50"></div>
-
-<script>
-/**
- * -------------------------------------------------------------
- * Firebase 設定
- * -------------------------------------------------------------
- */
-const firebaseConfig = {
-  apiKey: "AIzaSyB6H2x5EGWgcOZhdC69tbPqhoCM7Yu-gBQ",
-  authDomain: "nesshi.firebaseapp.com",
-  databaseURL: "https://nesshi-default-rtdb.firebaseio.com",
-  projectId: "nesshi",
-  storageBucket: "nesshi.firebasestorage.app",
-  messagingSenderId: "88541623389",
-  appId: "1:88541623389:web:978336bce7727b22c0c9b4",
-  measurementId: "G-FCLWZCFBTB"
-};
-
-if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
-const db = firebase.database();
-
-function toArray(data) {
-  if (!data) return [];
-  if (Array.isArray(data)) return data;
-  return Object.values(data);
-}
-
-/**
- * -------------------------------------------------------------
- * カード定義
- * -------------------------------------------------------------
- */
-const ATTRIBUTES = [
-  { name: "色", icon: "🎨", ex: "「中がイエロー」「最初はブルー」など" },
-  { name: "長さ", icon: "📏", ex: "「小学1年生の身長くらい」「時間がたつと縮む」など" },
-  { name: "時", icon: "⏰", ex: "「夏によく見る」「江戸時代にあった」など" },
-  { name: "かたち", icon: "🔷", ex: "「下から見ると丸い」「決まった形はない」など" },
-  { name: "音", icon: "👂", ex: "「音は出ない」「叩くと大きい音がする」など" },
-  { name: "におい", icon: "👃", ex: "「使った後はくさい」「おいしそう」など" },
-  { name: "重量", icon: "⚖️", ex: "「リンゴ1個分くらい」「水に浮く」など" },
-  { name: "広さ・大きさ", icon: "📐", ex: "「この部屋に入るくらい」「手のひらにのる」など" },
-  { name: "味・食", icon: "👅", ex: "「知らないけどたぶん苦い」「危険」など" },
-  { name: "手ざわり", icon: "✋", ex: "「痛い！」「ゴツゴツ」など" },
-  { name: "かたさ", icon: "🔨", ex: "「強くたたくと壊れる」「ぷよぷよ」など" },
-  { name: "価値", icon: "💰", ex: "「高級な車が買えるくらい」「わからない人にはゴミ」など" }
-];
-
-const FREE_CARD = {
-  category: 'YESNO_FREE',
-  categoryName: '自由質問「YES / NO」カード',
-  attrName: '自由質問',
-  icon: '❓',
-  badgeColor: 'bg-sky-500/20 text-sky-300 border-sky-500/40',
-  desc: 'マークの縛りなし！目撃者が「YES」または「NO」で答えられる質問を自由に口頭でしてください。'
-};
-
-function createMarkedDeck() {
-  const deck = [];
-  ATTRIBUTES.forEach(attr => {
-    deck.push({
-      category: 'HOW',
-      categoryName: '「どんな？」カード',
-      attrName: attr.name,
-      icon: attr.icon,
-      badgeColor: 'bg-amber-500/20 text-amber-300 border-amber-500/40',
-      desc: `正体の【${attr.name}】について口頭で質問してください。（例: ${attr.ex}）`
-    });
-    deck.push({
-      category: 'YESNO_MARKED',
-      categoryName: 'マークあり「YES / NO」カード',
-      attrName: attr.name,
-      icon: attr.icon,
-      badgeColor: 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40',
-      desc: `【${attr.name}】に関連して、目撃者が「YES」か「NO」で答えられる質問を口頭でしてください。`
-    });
-  });
-  return shuffle(deck);
-}
-
-function shuffle(arr) {
-  const a = [...arr];
-  for (let i = a.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [a[i], a[j]] = [a[j], a[i]];
-  }
-  return a;
-}
-
-/**
- * -------------------------------------------------------------
- * 状態管理
- * -------------------------------------------------------------
- */
-let currentRoomId = null;
-let myPlayerId = localStorage.getItem('nessie_pid') || 'p_' + Math.random().toString(36).substring(2, 9);
-localStorage.setItem('nessie_pid', myPlayerId);
-
-let myName = localStorage.getItem('nessie_pname') || '';
-let roomData = null;
-let roomRef = null;
-
-let localTyping = { inference: '', secretWord: '' };
-let localSelectedCardIndex = 0;
-const appEl = document.getElementById('app');
-
-const urlParams = new URLSearchParams(window.location.search);
-let invitedRoomCode = urlParams.get('room') ? urlParams.get('room').toUpperCase() : '';
-
-function render() {
-  if (!currentRoomId || !roomData) {
-    renderTitleScreen();
-    return;
-  }
-
-  updateHeader();
-  const phase = roomData.state?.phase;
-
-  if (phase === 'INFERENCE_INPUT') {
-    const inputEl = document.getElementById('inputInferenceText');
-    if (inputEl) {
-      updateInferenceWaitingStatus();
-      return;
-    }
-  }
-
-  switch (phase) {
-    case 'LOBBY': renderLobbyScreen(); break;
-    case 'SETUP': renderSetupScreen(); break;
-    case 'QUESTION_CHOOSE':
-    case 'QUESTION_ORAL': renderQuestionScreen(); break;
-    case 'INFERENCE_INPUT': renderInferenceInputScreen(); break;
-    case 'INFERENCE_REVEAL':
-    case 'INFERENCE_JUDGE': renderInferenceJudgeScreen(); break;
-    case 'SHIP_MOVE': renderShipMoveScreen(); break;
-    case 'SCOOP_VOTE_GUESSER': renderScoopVoteGuesserScreen(); break;
-    case 'SCOOP_RESULT_GUESSER': renderScoopResultGuesserScreen(); break;
-    case 'INSIDER_VOTE': renderInsiderVoteScreen(); break;
-    case 'INSIDER_REVEAL': renderInsiderRevealScreen(); break;
-    case 'ROUND_RESULT': renderRoundResultScreen(); break;
-    case 'SET_COMPLETE': renderSetCompleteScreen(); break;
-    default: renderLobbyScreen(); break;
-  }
-}
-
-function updateHeader() {
-  const el = document.getElementById('headerInfo');
-  if (!currentRoomId || !roomData) { el.innerHTML = ''; return; }
-  const isHost = roomData.hostId === myPlayerId;
-  el.innerHTML = `
-    <span class="bg-emerald-900/90 px-2 py-0.5 rounded border border-emerald-700 font-mono text-emerald-200">Room: ${currentRoomId}</span>
-    <span class="text-slate-300 font-bold">${escapeHtml(myName)}</span>
-    ${isHost ? '<span class="bg-amber-500/20 text-amber-300 text-[10px] px-1.5 py-0.5 rounded border border-amber-500/40">HOST</span>' : ''}
-  `;
-}
-
-function renderLakeTrackComponent() {
-  const pos = Number(roomData.state?.boatPos) || 0;
-  const isReached = pos >= 10;
-  const percentage = Math.min(84, Math.max(2, (pos / 10) * 80));
-
-  return `
-    <div class="bg-slate-950/80 border border-sky-800/60 p-3 rounded-2xl shadow-inner mb-3">
-      <div class="flex justify-between items-center text-xs font-bold text-sky-300 mb-1.5 px-1">
-        <span>⛵ ボート（位置: ${pos}）</span>
-        <span class="text-slate-400 text-[11px]">${isReached ? '✨ 湖（正解）に到達！' : '正体との距離感'}</span>
-        <span>🦕 ネッシー</span>
+      <div class="panel">
+        <div class="panel-title">プレイヤー情報</div>
+        <div>
+          <div class="input-label" style="margin-bottom: 4px;">ニックネーム:</div>
+          <input type="text" id="playerNameInput" class="input-box" placeholder="ニックネームを入力" maxlength="8">
+        </div>
       </div>
-      <div class="relative w-full h-11 bg-sky-950 rounded-xl border border-sky-700/60 flex items-center px-2 overflow-hidden shadow-inner">
-        <div class="absolute inset-0 bg-gradient-to-r from-sky-900/30 via-teal-900/20 to-sky-900/40 pointer-events-none"></div>
-        <div class="absolute transition-all duration-500 ease-out flex flex-col items-center z-10" style="left: ${percentage}%;">
-          <span class="text-2xl drop-shadow-md">⛵</span>
+
+      <div class="panel">
+        <div class="panel-title">ルームに参加</div>
+        <div>
+          <div class="input-label" style="margin-bottom: 4px;">ルームID:</div>
+          <input type="text" id="roomCodeInput" class="input-box" placeholder="招待リンクで自動入力されます" maxlength="4">
         </div>
-        <div class="absolute right-2 flex flex-col items-center z-0">
-          <span class="text-3xl ${isReached ? 'animate-bounce' : 'opacity-90'}">🦕</span>
-        </div>
+        <button id="btnJoinRoom" class="btn-main-blue" onclick="joinRoom()">ルームに参加</button>
+      </div>
+
+      <div class="panel">
+        <div class="panel-title panel-title-green">新規ルームを作成</div>
+        <button id="btnCreateRoom" class="btn-main-green" onclick="createRoom()">新規ルームを作成</button>
       </div>
     </div>
-  `;
-}
 
-/**
- * 2つの独立した取材ボード（上が質問カード表、下が推理＆最接近表）
- */
-function renderInvestigationLogComponent() {
-  const reporters = Object.keys(roomData.players || {}).filter(pid => pid !== roomData.state?.witnessId);
-  const curHintRound = Number(roomData.state?.hintRound) || 1;
-  const cardHistory = roomData.state?.cardHistory || {};
-  const history = toArray(roomData.state?.history);
-
-  // これまでに進んだ回（#1 〜 現在の回まで）の行リスト
-  const roundIndices = [];
-  for (let r = 1; r <= curHintRound; r++) {
-    roundIndices.push(r);
-  }
-
-  return `
-    <div class="mt-4 space-y-3">
-      <!-- 【上の表】出された質問カード表（リアルタイム更新） -->
-      <div class="bg-slate-950/80 border border-slate-800 rounded-2xl p-3 shadow-md">
-        <div class="text-xs font-bold text-amber-300 mb-1.5 flex items-center justify-between">
-          <span class="flex items-center gap-1.5"><span>📋</span> 出された質問カードの表（ヒント毎に更新）</span>
-          <span class="text-[10px] text-slate-400">現在: ${curHintRound}/5回目</span>
+    <div id="gameScreen" style="display: none; flex-direction: column; gap: 14px;">
+      <div style="display: flex; justify-content: space-between; align-items: center; background: #fff; padding: 10px 14px; border-radius: 10px; border: 1px solid var(--border); flex-wrap: wrap; gap: 8px;">
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <div style="font-size: 14px; font-weight: bold;">ルーム: <strong id="displayRoomCode" style="color: var(--primary-orange); font-size: 20px;"></strong></div>
+          <button id="btnCopyInvite" class="btn-copy" onclick="copyInviteUrl()">🔗 招待URLをコピー</button>
         </div>
+        <button id="btnStartGame" class="btn-main-green" style="width: auto; padding: 8px 20px; margin: 0; font-size: 15px; font-weight: 900; display: none;" onclick="startGame()">▶︎ ゲーム開始</button>
+        <button id="btnRestartGame" class="btn-main-orange" style="width: auto; padding: 8px 20px; margin: 0; font-size: 15px; font-weight: 900; display: none; background: #ea580c; color: #fff; border: none; border-radius: 8px; cursor: pointer;" onclick="restartFullGame()">🔄 もう一度全員で遊ぶ</button>
+      </div>
+
+      <div id="waitingStoryBox" class="story-card">
+        <div class="story-title">🐾 にゃんこ煩悩大暴走のものがたり</div>
+        <div class="story-text">
+          <p>あなたは人間です。<br>ある日、あなたは一匹の猫に出会いました。</p>
+          <p>その日から、あなたの脳内は猫でいっぱいに。<br>寝ても覚めても猫。ごはんを食べても猫。何をしていても猫、猫、猫……。</p>
+          <p>あふれ出す猫への愛。<span class="story-highlight">膨れ上がる煩悩。</span></p>
+          <p>あなたは煩悩の数が<strong>108を超えないよう</strong>、カードを使ってうまくコントロールしなければなりません。<br><strong>🧠（理性）は3つ。</strong>無くなったら煩悩に完全に敗北します！</p>
+          <p style="font-size: 12.5px; color: var(--text-sub); margin-top: 10px;">ただし、猫のかわいさは時に理性の限界を超えることも……？<br><strong>さあ、あなたは煩悩を抑えきれるでしょうか？</strong></p>
+        </div>
+      </div>
+
+      <div id="boardCenter" class="board-center" style="display: none;">
+        <div id="limitBadge" class="limit-badge">上限: 108</div>
+        <div class="board-split">
+          <div class="board-left">
+            <div style="font-size: 12px; color: var(--text-sub); font-weight: bold;">現在の煩悩合計</div>
+            <div id="counterValue" class="counter-value counter-normal">0</div>
+          </div>
+          <div class="board-right">
+            <div style="font-size: 11px; color: var(--text-sub); font-weight: bold; margin-bottom: 4px;">直前のカード</div>
+            <div id="tableCardContainer">
+              <div class="table-card-box" style="border-style: dashed; color: #94a3b8; font-size: 26px;">🐾</div>
+            </div>
+            <div id="lastPlayerTag" class="player-tag" style="display:none;"></div>
+          </div>
+        </div>
+        <div id="directionBadge" class="status-badge">回り順: 時計回り ➔</div>
+      </div>
+
+      <div id="logBox" class="log-box">プレイヤーを待っています...</div>
+      
+      <div>
+        <div style="font-size: 12px; font-weight: 800; color: var(--text-sub); margin-bottom: 6px;">参加者リスト（🧠残機）</div>
+        <div id="playersList" class="players-grid"></div>
+      </div>
+
+      <div id="handContainer" class="hand-container" style="display: none;">
+        <div id="turnNotice" style="font-size: 13px; font-weight: bold; color: var(--text-sub); text-align: center; margin-bottom: 8px;">手番を待っています</div>
+        <div id="handCards" class="hand-cards"></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="rulesModal" class="modal-overlay">
+    <div class="modal-box">
+      <h3>【🐈にゃんこ煩悩大暴走‼️】ルール</h3>
+      <p style="background: #fff7ed; padding: 10px; border-radius: 8px; font-size: 12.5px; line-height: 1.6; border: 1px solid #fed7aa; margin-bottom: 12px;">
+        猫のかわいさで脳内が猫だらけに！あふれる愛と煩悩をコントロールし、<strong>煩悩上限（通常108）を超えないようにする</strong>ゲームです。
+      </p>
+      <ul>
+        <li><strong>🧠残機は3つ：</strong> 上限を超えると🧠を1つ失います。誰か1人でも🧠が0になったらゲームセット！</li>
+        <li><strong>負けた人からスタート：</strong> 前のラウンドで上限を超えた人から手番が始まります！</li>
+        <li>手札は3枚。カードを1枚出すと山札から1枚自動補充されます。</li>
+      </ul>
+      <h4 style="color: var(--primary-orange); margin: 8px 0 4px 0;">オリジナル追加カード</h4>
+      <ul>
+        <li><strong>÷2:</strong> 現在の合計値を2で割る（四捨五入）</li>
+        <li><strong>×2:</strong> 現在の合計値を2倍にする</li>
+        <li><strong>x²:</strong> 現在の合計値を二乗（2乗）する超大技！</li>
+        <li><strong>√:</strong> 現在の合計値の平方根（四捨五入）</li>
+        <li><strong>+29 / +77:</strong> 大幅加算カード</li>
+        <li><strong>NYANKO FEVER:</strong> ゲーム開始時50%の確率で混入。発動すると<strong>上限が108から【222】に大暴走！</strong></li>
+      </ul>
+      <button class="btn-close" onclick="toggleModal('rulesModal')">閉じる</button>
+    </div>
+  </div>
+
+  <div id="shotModal" class="modal-overlay">
+    <div class="modal-box">
+      <h3>手番を渡すプレイヤーを選択</h3>
+      <div id="shotTargetButtons" style="display: flex; flex-direction: column; gap: 8px; margin: 16px 0;"></div>
+      <button class="btn-close" onclick="toggleModal('shotModal')">キャンセル</button>
+    </div>
+  </div>
+
+  <script>
+    const DECK_CONFIG = {
+      numbers_1_to_10_each: 3,
+      counts: {
+        '+29': 3, '+77': 2, 'x²': 1,
+        '-1': 3, '-10': 3, '108': 3,
+        'PASS': 3, 'TURN': 3, 'SHOT': 3, 'DOUBLE': 3,
+        '÷2': 2, '×2': 2, '√': 1,
+        '+20': 0, '+30': 0, '+40': 0, '+50': 0
+      },
+      fever: { probability: 0.5, count: 1 }
+    };
+
+    const ASSETS = {
+      cutinFever: './bonno_bousou.PNG',
+      cutinGameOver: './bonno_houkai.PNG',
+      cards: {
+        '÷2': './card_div2.PNG',
+        '×2': './card_mul2.PNG',
+        'x²': '',
+        '√': './card_sprt.PNG',
+        '+29': './card_29.PNG',
+        '+77': '',
+        'NYANKO FEVER': './nyanko_fever.PNG',
+        '108': './card_108.PNG',
+        'PASS': './card_pass.PNG',
+        'TURN': './card_trun.PNG',
+        'SHOT': './card_shot.PNG',
+        'DOUBLE': './card_double.PNG',
+        '-1': './card_minus1.PNG',
+        '-10': './card_minus10.PNG',
+        '+1': './card_1.PNG',
+        '+2': './card_2.png',
+        '+3': './card_3.PNG',
+        '+4': './card_4.png',
+        '+5': './card_5.PNG',
+        '+6': '',
+        '+7': './card_7.PNG',
+        '+8': './card_8.PNG',
+        '+9': './card_9.PNG',
+        '+10': './card_10.PNG'
+      }
+    };
+
+    let peer = null, isHost = false, myId = null, myName = '';
+    let hostConn = null, guestConns = {};
+    let autoNextGameTimer = null;
+
+    let room = {
+      status: 'waiting',
+      code: '',
+      currentTotal: 0,
+      maxBonno: 108,
+      direction: 1,
+      currentTurn: 0,
+      players: [],
+      deck: [],
+      discardPile: [],
+      lastAction: '',
+      loser: null,
+      pendingDouble: false,
+      playerRemainingPlays: 1,
+      lastCard: null,
+      lastLoserIdx: null // ★ 前ラウンドで負けた人のインデックス
+    };
+    let pendingShotIdx = null;
+
+    function getInviteUrl() {
+      const url = new URL(window.location.href);
+      url.searchParams.set('room', room.code);
+      return url.toString();
+    }
+
+    function copyInviteUrl() {
+      const inviteUrl = getInviteUrl();
+      const btn = document.getElementById('btnCopyInvite');
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(inviteUrl).then(showCopied).catch(fallbackCopy);
+      } else {
+        fallbackCopy();
+      }
+      function showCopied() {
+        const origText = btn.innerText;
+        btn.innerText = '✅ コピー完了！';
+        btn.style.background = '#dcfce7';
+        btn.style.color = '#15803d';
+        setTimeout(() => {
+          btn.innerText = origText;
+          btn.style.background = '#ffedd5';
+          btn.style.color = '#c2410c';
+        }, 2000);
+      }
+      function fallbackCopy() {
+        const tempInput = document.createElement('input');
+        tempInput.value = inviteUrl;
+        document.body.appendChild(tempInput);
+        tempInput.select();
+        document.execCommand('copy');
+        document.body.removeChild(tempInput);
+        showCopied();
+      }
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      const params = new URLSearchParams(window.location.search);
+      const roomParam = params.get('room');
+      if (roomParam) {
+        const codeInput = document.getElementById('roomCodeInput');
+        if (codeInput) {
+          codeInput.value = roomParam;
+          codeInput.style.background = '#eff6ff';
+          codeInput.style.borderColor = 'var(--primary-blue)';
+        }
+        document.getElementById('playerNameInput')?.focus();
+      }
+    });
+
+    function toggleModal(id) {
+      const m = document.getElementById(id);
+      m.style.display = m.style.display === 'flex' ? 'none' : 'flex';
+    }
+
+    function genDeck() {
+      let d = [];
+      const eachNum = DECK_CONFIG.numbers_1_to_10_each || 0;
+      for (let i = 1; i <= 10; i++) {
+        for (let j = 0; j < eachNum; j++) d.push({ t: 'num', v: i, l: `+${i}` });
+      }
+
+      const cardMaster = {
+        '+29': { t: 'num', v: 29, l: '+29' },
+        '+77': { t: 'num', v: 77, l: '+77' },
+        'x²':  { t: 'sqr', v: 0, l: 'x²' },
+        '+20': { t: 'num', v: 20, l: '+20' },
+        '+30': { t: 'num', v: 30, l: '+30' },
+        '+40': { t: 'num', v: 40, l: '+40' },
+        '+50': { t: 'num', v: 50, l: '+50' },
+        '-1': { t: 'min', v: -1, l: '-1' },
+        '-10': { t: 'min', v: -10, l: '-10' },
+        '108': { t: '108', v: 108, l: '108' },
+        'PASS': { t: 'pass', v: 0, l: 'PASS' },
+        'TURN': { t: 'turn', v: 0, l: 'TURN' },
+        'SHOT': { t: 'shot', v: 0, l: 'SHOT' },
+        'DOUBLE': { t: 'dbl', v: 0, l: 'DOUBLE' },
+        '÷2': { t: 'div2', v: 0, l: '÷2' },
+        '×2': { t: 'mul2', v: 0, l: '×2' },
+        '√': { t: 'sqrt', v: 0, l: '√' }
+      };
+
+      Object.keys(DECK_CONFIG.counts).forEach(label => {
+        const count = DECK_CONFIG.counts[label] || 0;
+        const master = cardMaster[label];
+        if (master && count > 0) {
+          for (let j = 0; j < count; j++) d.push({ ...master });
+        }
+      });
+
+      if (Math.random() < DECK_CONFIG.fever.probability) {
+        for (let j = 0; j < (DECK_CONFIG.fever.count || 1); j++) {
+          d.push({ t: 'fever', v: 0, l: 'NYANKO FEVER' });
+        }
+      }
+
+      return d.sort(() => Math.random() - 0.5);
+    }
+
+    function createRoom() {
+      myName = document.getElementById('playerNameInput').value.trim() || 'ホスト';
+      const btn = document.getElementById('btnCreateRoom');
+      btn.disabled = true;
+      btn.innerText = '作成中...';
+
+      const code = Math.floor(1000 + Math.random() * 9000).toString();
+      isHost = true;
+      peer = new Peer('lmt101-' + code);
+
+      peer.on('open', (id) => {
+        myId = id;
+        room.code = code;
+        room.players = [{ id: myId, name: myName, lives: 3, hand: [] }];
+        peer.on('connection', conn => {
+          conn.on('data', data => handleHostAction(conn, data));
+          conn.on('close', () => { delete guestConns[conn.peer]; syncState(); });
+        });
+        showGame(code);
+        syncState();
+      });
+
+      peer.on('error', () => {
+        alert('部屋の作成に失敗しました。もう一度お試しください。');
+        btn.disabled = false;
+        btn.innerText = '新規ルームを作成';
+      });
+    }
+
+    function joinRoom() {
+      myName = document.getElementById('playerNameInput').value.trim() || 'ゲスト';
+      const code = document.getElementById('roomCodeInput').value.trim();
+      if (!code) return alert('ルームIDを入力してください');
+
+      const btn = document.getElementById('btnJoinRoom');
+      btn.disabled = true;
+      btn.innerText = '参加中...';
+
+      isHost = false;
+      peer = new Peer();
+
+      peer.on('open', (id) => {
+        myId = id;
+        hostConn = peer.connect('lmt101-' + code);
+
+        const timeout = setTimeout(() => {
+          if (!currentRoomState) {
+            alert('ホストに接続できませんでした。ルームIDを確認してください。');
+            btn.disabled = false;
+            btn.innerText = 'ルームに参加';
+          }
+        }, 6000);
+
+        hostConn.on('open', () => {
+          clearTimeout(timeout);
+          hostConn.send({ action: 'join', name: myName });
+          showGame(code);
+        });
+
+        hostConn.on('data', data => {
+          if (data.sync) updateUI(data.room, data.myHand);
+          if (data.effect === 'fever') playFeverAnimation();
+          if (data.effect === 'gameover') playGameOverAnimation(data.loserName, data.isMatchOver);
+        });
+
+        hostConn.on('close', () => alert('ホストが切断しました'));
+      });
+
+      peer.on('error', () => {
+        alert('部屋が見つかりません。ルームIDを確認してください。');
+        btn.disabled = false;
+        btn.innerText = 'ルームに参加';
+      });
+    }
+
+    function handleHostAction(conn, data) {
+      if (data.action === 'join') {
+        guestConns[conn.peer] = conn;
+        const existingIdx = room.players.findIndex(p => p.id === conn.peer);
+        if (existingIdx !== -1) {
+          room.players[existingIdx].name = data.name;
+        } else {
+          room.players.push({ id: conn.peer, name: data.name, lives: 3, hand: [] });
+          room.lastAction = `${data.name} が参加しました`;
+        }
+        syncState();
+      } else if (data.action === 'play') {
+        execPlay(data.playerId, data.cardIndex, data.targetId);
+      }
+    }
+
+    function startGame() {
+      if (!isHost) return;
+      if (room.players.length < 2) return alert('対戦には最低2人必要です (推奨3〜7人)');
+
+      for (let i = room.players.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [room.players[i], room.players[j]] = [room.players[j], room.players[i]];
+      }
+
+      room.players.forEach(p => p.lives = 3);
+      room.lastLoserIdx = null;
+      startNewRound();
+    }
+
+    // ★ 案①：ホストが「もう一度全員で遊ぶ」を押したときの全体リスタート
+    function restartFullGame() {
+      if (!isHost) return;
+      room.players.forEach(p => p.lives = 3);
+      room.lastLoserIdx = null;
+      startNewRound();
+    }
+
+    function startNewRound() {
+      room.status = 'playing';
+      room.deck = genDeck();
+      room.discardPile = [];
+      room.currentTotal = 0;
+      room.maxBonno = 108;
+      room.direction = 1;
+      
+      // ★ 前ラウンドで負けた人からスタート！（初回は0番）
+      if (room.lastLoserIdx !== null && room.players[room.lastLoserIdx]) {
+        room.currentTurn = room.lastLoserIdx;
+      } else {
+        room.currentTurn = 0;
+      }
+
+      room.pendingDouble = false;
+      room.playerRemainingPlays = 1;
+      room.loser = null;
+      room.lastCard = null;
+
+      room.players.forEach(p => {
+        p.hand = [room.deck.pop(), room.deck.pop(), room.deck.pop()];
+      });
+
+      room.lastAction = `新規ラウンド開始！${room.players[room.currentTurn].name} の手番です (上限: 108)`;
+      syncState();
+    }
+
+    function playCard(idx) {
+      const card = (isHost ? room.players[room.currentTurn].hand : myLocalHand)[idx];
+      if (card.t === 'shot') {
+        pendingShotIdx = idx;
+        openShotModal();
+        return;
+      }
+      sendPlay(idx, null);
+    }
+
+    function openShotModal() {
+      const box = document.getElementById('shotTargetButtons');
+      box.innerHTML = '';
+      currentRoomState.players.forEach(p => {
+        if (p.id !== myId && p.lives > 0) {
+          const btn = document.createElement('button');
+          btn.className = 'btn-main-blue';
+          btn.textContent = `${p.name} (🧠${p.lives})`;
+          btn.onclick = () => {
+            sendPlay(pendingShotIdx, p.id);
+            toggleModal('shotModal');
+          };
+          box.appendChild(btn);
+        }
+      });
+      toggleModal('shotModal');
+    }
+
+    function sendPlay(cardIdx, targetId) {
+      if (isHost) execPlay(myId, cardIdx, targetId);
+      else hostConn.send({ action: 'play', playerId: myId, cardIndex: cardIdx, targetId });
+    }
+
+    function execPlay(playerId, cardIdx, targetId) {
+      const p = room.players[room.currentTurn];
+      if (!p || p.id !== playerId || room.status !== 'playing') return;
+
+      const card = p.hand.splice(cardIdx, 1)[0];
+
+      if (room.deck.length === 0) {
+        room.deck = room.discardPile.sort(() => Math.random() - 0.5);
+        room.discardPile = [];
+      }
+      p.hand.push(room.deck.pop());
+
+      if (card.t !== 'fever') {
+        room.discardPile.push(card);
+      }
+
+      room.lastCard = { ...card, playedBy: p.name };
+
+      let justSetDouble = false;
+
+      if (card.t === 'num') {
+        room.currentTotal += card.v;
+        room.lastAction = `${p.name} が [${card.l}] (煩悩合計: ${room.currentTotal})`;
+      } else if (card.t === 'min') {
+        room.currentTotal = Math.max(0, room.currentTotal + card.v);
+        room.lastAction = `${p.name} が [${card.l}] (煩悩合計: ${room.currentTotal})`;
+      } else if (card.t === '108') {
+        room.currentTotal = 108;
+        room.lastAction = `${p.name} が [108] を発動！ 合計が108になりました！`;
+      } else if (card.t === 'pass') {
+        room.lastAction = `${p.name} が [PASS] を使用`;
+      } else if (card.t === 'turn') {
+        room.direction *= -1;
+        room.lastAction = `${p.name} が [TURN]！ 回り順が反転しました`;
+      } else if (card.t === 'shot') {
+        const tIdx = room.players.findIndex(x => x.id === targetId);
+        room.currentTurn = tIdx;
+        room.playerRemainingPlays = room.pendingDouble ? 2 : 1;
+        room.pendingDouble = false;
+        room.lastAction = `${p.name} が [SHOT] を ${room.players[tIdx].name} に発射！`;
+        syncState();
+        return;
+      } else if (card.t === 'dbl') {
+        justSetDouble = true;
+        room.pendingDouble = true;
+        room.lastAction = `${p.name} が [DOUBLE]！ 次の人は2枚出さなければなりません！`;
+      } else if (card.t === 'mul2') {
+        room.currentTotal = room.currentTotal * 2;
+        room.lastAction = `${p.name} が [×2]！ 煩悩が2倍 (${room.currentTotal}) に跳ね上がった！`;
+      } else if (card.t === 'sqr') {
+        room.currentTotal = room.currentTotal * room.currentTotal;
+        room.lastAction = `${p.name} が [x²]！ 煩悩が二乗 (${room.currentTotal}) に大爆発！！`;
+      } else if (card.t === 'div2') {
+        room.currentTotal = Math.round(room.currentTotal / 2);
+        room.lastAction = `${p.name} が [÷2]！ 煩悩が半減 (${room.currentTotal}) に浄化された！`;
+      } else if (card.t === 'sqrt') {
+        room.currentTotal = Math.round(Math.sqrt(Math.max(0, room.currentTotal)));
+        room.lastAction = `${p.name} が [√]！ 煩悩が平方根 (${room.currentTotal}) に激減！`;
+      } else if (card.t === 'fever') {
+        room.maxBonno = 222;
+        room.lastAction = `💥 ${p.name} が [NYANKO FEVER] を発動！ 上限が【222】に大暴走‼️`;
+        broadcastEffect('fever');
+        playFeverAnimation();
+      }
+
+      // ★ 煩悩崩壊判定（ライフ減少＆脱落チェック）
+      if (room.currentTotal > room.maxBonno) {
+        p.lives--; // 🧠 を1つ失う
+        room.loser = p.name;
+        room.lastLoserIdx = room.currentTurn; // ★ 次のラウンドはこの人からスタート！
+
+        // 誰か1人でも 🧠 が0になったか？
+        const isMatchOver = (p.lives <= 0);
+
+        if (isMatchOver) {
+          room.status = 'ended';
+          room.lastAction = `💀 煩悩完全崩壊！ ${p.name} の理性が尽き果てました（ゲームセット！）`;
+        } else {
+          room.lastAction = `💥 煩悩崩壊！ ${p.name} が🧠を1つ失いました（残り: 🧠${p.lives}）`;
+        }
+
+        broadcastEffect('gameover', { loserName: p.name, isMatchOver: isMatchOver });
+        playGameOverAnimation(p.name, isMatchOver);
+        syncState();
+
+        if (!isMatchOver) {
+          // まだ脱落者なし：3.8秒後に全自動で負けた人から次ラウンド開始
+          clearTimeout(autoNextGameTimer);
+          autoNextGameTimer = setTimeout(() => {
+            if (room.status === 'playing') startNewRound();
+          }, 3800);
+        }
+        return;
+      }
+
+      if (justSetDouble) {
+        room.playerRemainingPlays = 0;
+      } else {
+        room.playerRemainingPlays--;
+      }
+
+      if (room.playerRemainingPlays > 0) {
+        room.lastAction += ` (DOUBLE効果: あと1枚出してください)`;
+        syncState();
+        return;
+      }
+
+      moveToNextPlayer();
+      syncState();
+    }
+
+    function moveToNextPlayer() {
+      const n = room.players.length;
+      room.currentTurn = (room.currentTurn + room.direction + n) % n;
+      if (room.pendingDouble) {
+        room.playerRemainingPlays = 2;
+        room.pendingDouble = false;
+      } else {
+        room.playerRemainingPlays = 1;
+      }
+    }
+
+    function broadcastEffect(effectName, extra = {}) {
+      if (!isHost) return;
+      Object.keys(guestConns).forEach(id => {
+        if (guestConns[id]) guestConns[id].send({ effect: effectName, ...extra });
+      });
+    }
+
+    function syncState() {
+      if (!isHost) return;
+      const cleanRoom = {
+        ...room,
+        players: room.players.map(p => ({ id: p.id, name: p.name, lives: p.lives, cardCount: p.hand.length }))
+      };
+      updateUI(cleanRoom, room.players.find(p => p.id === myId)?.hand);
+      Object.keys(guestConns).forEach(id => {
+        const p = room.players.find(x => x.id === id);
+        if (guestConns[id] && p) guestConns[id].send({ sync: true, room: cleanRoom, myHand: p.hand });
+      });
+    }
+
+    function playFeverAnimation() {
+      const ov = document.getElementById('feverOverlay');
+      const brain = document.getElementById('brainBox');
+      const title = document.getElementById('feverTitleBox');
+      const imgContainer = document.getElementById('feverImgContainer');
+      const defText = document.getElementById('feverDefaultText');
+
+      if (ASSETS.cutinFever) {
+        imgContainer.innerHTML = `<img src="${ASSETS.cutinFever}" alt="煩悩暴走‼️" class="custom-asset-img" onerror="this.style.display='none'; document.getElementById('feverDefaultText').style.display='block';">`;
+        defText.style.display = 'none';
+      } else {
+        imgContainer.innerHTML = '';
+        defText.style.display = 'block';
+      }
+
+      ov.style.display = 'flex';
+      brain.classList.remove('open');
+      title.classList.remove('show');
+
+      setTimeout(() => brain.classList.add('open'), 100);
+      setTimeout(() => {
+        title.classList.add('show');
+        document.body.classList.add('shake-screen');
+      }, 400);
+
+      setTimeout(() => {
+        document.body.classList.remove('shake-screen');
+        ov.style.display = 'none';
+      }, 2600);
+    }
+
+    function playGameOverAnimation(loserName, isMatchOver) {
+      const ov = document.getElementById('collapseOverlay');
+      const imgContainer = document.getElementById('collapseImgContainer');
+      const defText = document.getElementById('collapseDefaultText');
+      const loserElem = document.getElementById('collapseLoserName');
+      const descElem = document.getElementById('collapseDescText');
+      const subNotice = document.getElementById('collapseSubNotice');
+
+      if (ASSETS.cutinGameOver) {
+        imgContainer.innerHTML = `<img src="${ASSETS.cutinGameOver}" alt="煩悩崩壊" class="collapse-asset-img" onerror="this.style.display='none'; document.getElementById('collapseDefaultText').style.display='block';">`;
+        defText.style.display = 'none';
+      } else {
+        imgContainer.innerHTML = '';
+        defText.style.display = 'block';
+      }
+
+      if (isMatchOver) {
+        loserElem.innerText = `💀 脱落者: ${loserName || '???'} (🧠0)`;
+        descElem.innerText = '理性が完全に崩壊しました！ゲームセット！';
+        subNotice.innerText = 'ホストが「もう一度全員で遊ぶ」を押すと再スタートします';
+      } else {
+        loserElem.innerText = `爆発した人: ${loserName || '???'} 💥`;
+        descElem.innerText = '上限を超過し、🧠を1つ失いました！';
+        subNotice.innerText = `まもなく ${loserName} から次ラウンドが始まります...`;
+      }
+
+      ov.style.display = 'flex';
+      document.body.classList.add('shake-screen');
+
+      // 誰かが脱落したら演出画面を長めに表示
+      const waitTime = isMatchOver ? 4500 : 3400;
+      setTimeout(() => {
+        document.body.classList.remove('shake-screen');
+        ov.style.display = 'none';
+      }, waitTime);
+    }
+
+    let currentRoomState = null, myLocalHand = [];
+
+    function showGame(code) {
+      document.getElementById('lobbyScreen').style.display = 'none';
+      document.getElementById('gameScreen').style.display = 'flex';
+      document.getElementById('displayRoomCode').innerText = code;
+    }
+
+    function updateUI(st, hand) {
+      currentRoomState = st;
+      myLocalHand = hand || [];
+
+      const isWaiting = (st.status === 'waiting');
+      const isEnded = (st.status === 'ended');
+
+      document.getElementById('waitingStoryBox').style.display = isWaiting ? 'block' : 'none';
+      document.getElementById('boardCenter').style.display = (isWaiting || isEnded) ? 'none' : 'block';
+      document.getElementById('handContainer').style.display = (isWaiting || isEnded) ? 'none' : 'block';
+
+      // ボタン制御
+      const btnStart = document.getElementById('btnStartGame');
+      const btnRestart = document.getElementById('btnRestartGame');
+
+      btnStart.style.display = (isHost && isWaiting) ? 'block' : 'none';
+      // 脱落者が出てゲーム終了した時、ホストだけに「もう一度全員で遊ぶ」ボタンを表示
+      btnRestart.style.display = (isHost && isEnded) ? 'block' : 'none';
+
+      const boardCenter = document.getElementById('boardCenter');
+      const limitBadge = document.getElementById('limitBadge');
+      if (st.maxBonno === 222) {
+        boardCenter.classList.add('fever-mode');
+        limitBadge.className = 'limit-badge fever';
+        limitBadge.innerText = '🔥 FEVER上限: 222 🔥';
+      } else {
+        boardCenter.classList.remove('fever-mode');
+        limitBadge.className = 'limit-badge';
+        limitBadge.innerText = '上限: 108';
+      }
+
+      const cv = document.getElementById('counterValue');
+      cv.innerText = st.currentTotal;
+      const isDanger = st.currentTotal >= (st.maxBonno - 15);
+      cv.className = 'counter-value ' + (isDanger ? 'counter-danger' : 'counter-normal');
+
+      const tableCardBox = document.getElementById('tableCardContainer');
+      const playerTag = document.getElementById('lastPlayerTag');
+
+      if (st.lastCard) {
+        const c = st.lastCard;
+        const imgSrc = ASSETS.cards[c.l];
+        let badgeCls = '';
+        if (c.t === 'div2' || c.t === 'mul2' || c.t === 'sqrt' || c.t === 'sqr') badgeCls = 'badge-calc';
+        else if (c.t === 'fever') badgeCls = 'badge-fever';
+        else if (c.t === '108') badgeCls = 'badge-danger';
+
+        let innerContent = '';
+        if (imgSrc) {
+          innerContent = `
+            <div class="card-corner-badge ${badgeCls}" style="font-size:10px; padding:1px 5px;">${c.l}</div>
+            <div style="width:70px; height:70px; margin-top:12px; display:flex; align-items:center; justify-content:center;">
+              <img src="${imgSrc}" class="card-inner-img" onerror="this.parentElement.innerHTML='<div class=\\'card-val\\' style=\\'font-size:18px;\\'>${c.l}</div>';">
+            </div>
+          `;
+        } else {
+          innerContent = `
+            <div class="card-corner-badge ${badgeCls}" style="font-size:10px; padding:1px 5px;">${c.l}</div>
+            <div class="card-val" style="font-size:20px; color:#1e293b;">${c.l}</div>
+          `;
+        }
+
+        tableCardBox.innerHTML = `<div class="table-card-box card-pop">${innerContent}</div>`;
+        playerTag.style.display = 'inline-block';
+        playerTag.innerText = `${c.playedBy} がプレイ！`;
+      } else {
+        tableCardBox.innerHTML = `<div class="table-card-box" style="border-style:dashed; color:#94a3b8; font-size:26px;">🐾</div>`;
+        playerTag.style.display = 'none';
+      }
+
+      const dBadge = document.getElementById('directionBadge');
+      let dText = `回り順: ${st.direction === 1 ? '時計回り ➔' : '反時計回り 逆➔'}`;
+      if (st.playerRemainingPlays > 1) dText += ' [DOUBLE発動中: 残り2枚]';
+      dBadge.innerText = dText;
+
+      document.getElementById('logBox').innerText = st.lastAction || '';
+
+      // 参加者リスト（🧠 ライフ表示）
+      const list = document.getElementById('playersList');
+      list.innerHTML = '';
+      st.players.forEach((p, i) => {
+        const isTurn = st.status === 'playing' && st.currentTurn === i;
+        const isDead = (p.lives <= 0);
+        const div = document.createElement('div');
+        div.className = `player-card ${isTurn ? 'active' : ''} ${isDead ? 'dead' : ''}`;
         
-        <div class="overflow-x-auto custom-scrollbar">
-          <table class="w-full text-center border-collapse text-xs min-w-[280px]">
-            <thead>
-              <tr class="bg-slate-900 text-slate-400 border-b border-slate-700">
-                <th class="py-1.5 px-1 font-bold w-10">回</th>
-                ${reporters.map(pid => `
-                  <th class="py-1.5 px-1 font-bold truncate max-w-[80px]">
-                    ${escapeHtml(roomData.players[pid]?.name || '記者')}
-                  </th>
-                `).join('')}
-              </tr>
-            </thead>
-            <tbody class="divide-y divide-slate-800">
-              ${roundIndices.map(r => {
-                const roundCards = cardHistory[r] || {};
-                return `
-                  <tr class="hover:bg-slate-900/40">
-                    <td class="py-2 px-1 font-mono font-bold text-slate-400 bg-slate-900/50">#${r}</td>
-                    ${reporters.map(pid => {
-                      const c = roundCards[pid];
-                      return `
-                        <td class="py-2 px-1 truncate max-w-[80px]">
-                          ${c ? `
-                            <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-lg border text-[10px] font-bold ${c.badgeColor || 'bg-slate-800 border-slate-700 text-slate-200'}">
-                              <span>${c.icon || '🎴'}</span>
-                              <span class="truncate">${escapeHtml(c.attrName || '')}</span>
-                            </span>
-                          ` : `
-                            <span class="text-[10px] text-slate-600">─</span>
-                          `}
-                        </td>
-                      `;
-                    }).join('')}
-                  </tr>
-                `;
-              }).join('')}
-            </tbody>
-          </table>
-        </div>
-      </div>
+        const brainIcons = '🧠'.repeat(Math.max(0, p.lives)) || '💀脱落';
 
-      <!-- 【下の表】みんなの推理 ＆ 最接近ログの表 -->
-      <div class="bg-slate-950/80 border border-slate-800 rounded-2xl p-3 shadow-md">
-        <div class="text-xs font-bold text-sky-300 mb-2 flex items-center gap-1.5">
-          <span>📝</span> みんなの推理 ＆ 最接近の表
-        </div>
-        
-        <div class="overflow-x-auto custom-scrollbar">
-          <table class="w-full text-center border-collapse text-xs min-w-[280px]">
-            <thead>
-              <tr class="bg-slate-900 text-slate-400 border-b border-slate-700">
-                <th class="py-1.5 px-1 font-bold w-10">回</th>
-                ${reporters.map(pid => `
-                  <th class="py-1.5 px-1 font-bold truncate max-w-[75px]">
-                    ${escapeHtml(roomData.players[pid]?.name || '記者')}
-                  </th>
-                `).join('')}
-                <th class="py-1.5 px-1 font-black text-amber-400 w-24">最接近★</th>
-              </tr>
-            </thead>
-            <tbody class="divide-y divide-slate-800">
-              ${history.length === 0 ? `
-                <tr>
-                  <td colspan="${reporters.length + 2}" class="py-3 text-[11px] text-slate-500 text-center">
-                    まだ推理履歴はありません（推理タイム終了後に記録されます）
-                  </td>
-                </tr>
-              ` : `
-                ${history.map((h, i) => `
-                  <tr class="hover:bg-slate-900/40">
-                    <td class="py-2 px-1 font-mono font-bold text-slate-400 bg-slate-900/50">#${i + 1}</td>
-                    ${reporters.map(pid => {
-                      const inf = h.inferences?.[pid];
-                      const isClosest = inf?.isClosest;
-                      return `
-                        <td class="py-2 px-1 truncate max-w-[75px] ${isClosest ? 'bg-amber-950/60 text-amber-200 font-bold border border-amber-500/40' : 'text-slate-300'}">
-                          ${escapeHtml(inf?.text || '─')}
-                        </td>
-                      `;
-                    }).join('')}
-                    <td class="py-2 px-1 font-black text-amber-300 bg-amber-950/20 truncate max-w-[85px]">
-                      ${escapeHtml(h.closestText ? `★ ${h.closestText}` : '─')}
-                    </td>
-                  </tr>
-                `).join('')}
-              `}
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-  `;
-}
-
-/**
- * 1. タイトル画面
- */
-function renderTitleScreen() {
-  const initialCode = invitedRoomCode;
-
-  appEl.innerHTML = `
-    <div class="bg-slate-800/90 border border-slate-700 p-6 rounded-3xl shadow-2xl backdrop-blur">
-      <div class="text-center mb-8">
-        <div class="text-6xl animate-bounce">🦕🌊⛵</div>
-        <h2 class="text-2xl font-black text-emerald-300 mt-3 tracking-wide">ネッシーの正体 オンライン</h2>
-        <p class="text-xs text-slate-400 mt-1">霧深きネス湖で、正体不明の影を暴け！</p>
-      </div>
-
-      ${initialCode ? `
-        <div class="mb-4 p-3 bg-emerald-950/70 border border-emerald-600 rounded-2xl text-center">
-          <span class="text-xs text-emerald-300 font-bold">招待ルーム [ ${initialCode} ] を読み込みました！</span>
-          <p class="text-[11px] text-slate-300 mt-0.5">名前を入力して「参加」を押してください。</p>
-        </div>
-      ` : ''}
-
-      <div class="space-y-4">
-        <div>
-          <label class="block text-xs font-bold text-slate-300 mb-1">あなたの探検家名</label>
-          <input id="inputPlayerName" type="text" maxlength="10" value="${escapeHtml(myName)}" placeholder="名前（最大10文字）" 
-            class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-sm focus:border-emerald-500 outline-none">
-        </div>
-
-        <div class="pt-2 border-t border-slate-700/60">
-          <button onclick="handleCreateRoom()" class="w-full bg-emerald-600 hover:bg-emerald-500 active:scale-95 text-white font-bold py-3.5 rounded-xl transition shadow-lg flex items-center justify-center gap-2">
-            <span>✨</span> 新しい調査ルームを作成
-          </button>
-        </div>
-
-        <div class="relative flex py-2 items-center">
-          <div class="flex-grow border-t border-slate-700"></div>
-          <span class="flex-shrink mx-4 text-xs text-slate-500">または</span>
-          <div class="flex-grow border-t border-slate-700"></div>
-        </div>
-
-        <div class="flex gap-2">
-          <input id="inputRoomCode" type="text" maxlength="6" value="${initialCode}" placeholder="6桁コード"
-            class="flex-1 bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-sm font-mono tracking-widest text-center uppercase focus:border-emerald-500 outline-none">
-          <button onclick="handleJoinRoom()" class="bg-sky-600 hover:bg-sky-500 active:scale-95 text-white font-bold px-6 py-3 rounded-xl transition shadow-lg">
-            参加
-          </button>
-        </div>
-      </div>
-    </div>
-  `;
-}
-
-/**
- * 2. ロビー画面
- */
-function renderLobbyScreen() {
-  const isHost = roomData.hostId === myPlayerId;
-  const players = Object.values(roomData.players || {});
-  const playerCount = players.length;
-  const isNormal = roomData.mode === 'NORMAL';
-
-  let playerListHtml = players.map(p => {
-    const isMe = p.id === myPlayerId;
-    const isH = p.id === roomData.hostId;
-    return `
-      <div class="flex items-center justify-between p-3 rounded-xl ${isMe ? 'bg-emerald-950/50 border border-emerald-700/50' : 'bg-slate-900/60 border border-slate-800'}">
-        <div class="flex items-center gap-2">
-          <span class="text-lg">${isH ? '👑' : '🧭'}</span>
-          <span class="font-bold text-sm ${isMe ? 'text-emerald-300' : 'text-slate-200'}">${escapeHtml(p.name)}</span>
-          ${isMe ? '<span class="text-[10px] bg-emerald-800 text-emerald-200 px-1.5 py-0.5 rounded">あなた</span>' : ''}
-        </div>
-        <div class="text-xs text-slate-400">
-          ${isNormal ? `正解数: <span class="font-bold text-emerald-400 font-mono text-sm">${p.correctCount || 0}</span> 問` : `得点: <span class="font-bold text-amber-400 font-mono text-sm">${p.score || 0}</span> 点`}
-        </div>
-      </div>
-    `;
-  }).join('');
-
-  appEl.innerHTML = `
-    <div class="bg-slate-800 border border-slate-700 p-5 rounded-3xl shadow-xl space-y-5">
-      <div class="text-center border-b border-slate-700 pb-4">
-        <span class="text-xs text-slate-400 font-bold">合言葉（ルームコード）</span>
-        <div class="text-3xl font-mono font-black text-emerald-400 tracking-widest mt-1">
-          ${currentRoomId}
-        </div>
-        <div class="flex justify-center gap-2 mt-3">
-          <button onclick="copyInviteUrl()" class="px-4 py-2 bg-emerald-700 hover:bg-emerald-600 active:scale-95 text-white text-xs font-bold rounded-xl shadow flex items-center gap-1.5">
-            <span>🔗</span> 招待URLをコピー
-          </button>
-          <button onclick="copyRoomCode()" class="px-3 py-2 bg-slate-700 hover:bg-slate-600 active:scale-95 text-slate-300 text-xs font-bold rounded-xl">
-            コードのみ
-          </button>
-        </div>
-      </div>
-
-      <div>
-        <div class="flex justify-between items-center mb-2 px-1">
-          <span class="text-xs font-bold text-slate-300">参加探検隊員 (${playerCount}/8人)</span>
-          <span class="text-xs text-emerald-400 font-semibold">${playerCount >= 4 ? '準備完了' : 'あと ' + (4 - playerCount) + '人必要'}</span>
-        </div>
-        <div class="space-y-2 max-h-48 overflow-y-auto custom-scrollbar">
-          ${playerListHtml}
-        </div>
-      </div>
-
-      <div class="bg-slate-900/80 p-3 rounded-2xl border border-slate-700">
-        <label class="block text-xs font-bold text-slate-300 mb-2">ゲームモード</label>
-        <div class="grid grid-cols-2 gap-2">
-          <button onclick="${isHost ? "setGameMode('NORMAL')" : ''}" 
-            class="py-2.5 px-3 rounded-xl border text-xs font-bold transition flex flex-col items-center gap-1 ${roomData.mode === 'NORMAL' ? 'bg-emerald-600 border-emerald-400 text-white shadow-md' : 'bg-slate-800 border-slate-700 text-slate-400'}">
-            <span>🦕 ネッシーモード</span>
-            <span class="text-[10px] opacity-80">正解数を記録</span>
-          </button>
-          <button onclick="${isHost ? "setGameMode('INSIDER')" : ''}" 
-            class="py-2.5 px-3 rounded-xl border text-xs font-bold transition flex flex-col items-center gap-1 ${roomData.mode === 'INSIDER' ? 'bg-purple-600 border-purple-400 text-white shadow-md' : 'bg-slate-800 border-slate-700 text-slate-400'}">
-            <span>🕵️ インサイダー</span>
-            <span class="text-[10px] opacity-80">正体＋裏切り者（得点）</span>
-          </button>
-        </div>
-      </div>
-
-      ${isHost ? `
-        <button onclick="handleStartGameSet()" ${playerCount < 4 ? 'disabled' : ''}
-          class="w-full bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 disabled:opacity-40 disabled:cursor-not-allowed text-white font-extrabold py-3.5 rounded-2xl transition shadow-lg text-base">
-          調査セットを開始する
-        </button>
-      ` : `
-        <div class="text-center py-2 text-xs text-slate-400 animate-pulse">隊長が調査を開始するのを待機中...</div>
-      `}
-
-      <button onclick="handleLeaveRoom()" class="w-full text-center text-xs text-rose-400 hover:text-rose-300 pt-2">
-        ルームを退出する
-      </button>
-    </div>
-  `;
-}
-
-/**
- * 3. セットアップ画面
- */
-function renderSetupScreen() {
-  const isWitness = roomData.state.witnessId === myPlayerId;
-  const isInsider = roomData.mode === 'INSIDER' && roomData.state.insiderId === myPlayerId;
-  const witnessName = roomData.players[roomData.state.witnessId]?.name || '目撃者';
-  const playedCount = toArray(roomData.state.playedWitnesses).length;
-  const totalPlayers = Object.keys(roomData.players).length;
-
-  appEl.innerHTML = `
-    <div class="bg-slate-800 border border-slate-700 p-5 rounded-3xl shadow-xl space-y-4">
-      <div class="text-center text-xs text-emerald-400 font-bold">
-        第 ${playedCount + 1} 人目の目撃者調査 (${playedCount + 1} / ${totalPlayers}人)
-      </div>
-
-      <div class="p-4 rounded-2xl text-center border ${
-        isWitness ? 'bg-amber-950/60 border-amber-600/60 text-amber-200' :
-        isInsider ? 'bg-purple-950/60 border-purple-600/60 text-purple-200' :
-        'bg-sky-950/60 border-sky-600/60 text-sky-200'
-      }">
-        <span class="text-xs uppercase font-bold tracking-wider opacity-75">あなたの役割</span>
-        <div class="text-2xl font-black mt-1">
-          ${isWitness ? '👀 あなたは【目撃者】です' : isInsider ? '🕵️ あなたは【インサイダー】です' : '📰 あなたは【一般記者】です'}
-        </div>
-        <p class="text-xs mt-1.5 opacity-90">
-          ${isWitness ? 'ネッシーの正体を決めてください。誰もが知っている名詞にしましょう。' :
-            isInsider ? '正体を知りながら、正体がバレないように誘導してください。' :
-            '質問を重ねて、ネッシーの正体を暴いてください。'}
-        </p>
-      </div>
-
-      ${isWitness ? `
-        <div class="space-y-4 bg-slate-900/80 p-4 rounded-2xl border border-slate-700">
-          <div>
-            <label class="block text-xs font-bold text-slate-300 mb-1">ネッシーの正体（例: パイナップル、タイヤ、信号機）</label>
-            <input id="inputSecretWord" type="text" maxlength="20" placeholder="正体の言葉" 
-              value="${escapeHtml(localTyping.secretWord)}"
-              oninput="localTyping.secretWord = this.value"
-              class="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-3 text-sm focus:border-amber-500 outline-none">
+        div.innerHTML = `
+          <div style="font-weight:bold; font-size:14px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+            ${p.name} ${p.id === myId ? '(自分)' : ''}
           </div>
-          <button onclick="submitSetup()" class="w-full bg-amber-600 hover:bg-amber-500 active:scale-95 text-slate-950 font-black py-3.5 rounded-xl transition shadow-lg text-sm">
-            正体を決定して調査開始！
-          </button>
-        </div>
-      ` : `
-        <div class="text-center py-10 space-y-3 bg-slate-900/60 rounded-2xl border border-slate-800">
-          <div class="text-4xl animate-pulse">⛵ ... 🦕</div>
-          <p class="text-sm font-bold text-slate-300">目撃者（${escapeHtml(witnessName)}）が正体を考え中...</p>
-          <p class="text-xs text-slate-500">決定すると自動的に質問フェーズへ進みます</p>
-        </div>
-      `}
-    </div>
-  `;
-}
-
-/**
- * 4. 質問画面（ボタン2回 ＆ リアルタイム表更新）
- */
-function renderQuestionScreen() {
-  const isWitness = roomData.state.witnessId === myPlayerId;
-  const isHost = roomData.hostId === myPlayerId;
-  const isInsider = roomData.mode === 'INSIDER' && roomData.state.insiderId === myPlayerId;
-  const state = roomData.state;
-
-  const queue = toArray(state.questionQueue);
-  const curIdx = Number(state.currentQuestionIndex) || 0;
-  const currentAskerId = queue[curIdx];
-  const isMyTurn = currentAskerId === myPlayerId;
-  const askerName = roomData.players[currentAskerId]?.name || '記者';
-  const threeCards = toArray(state.threeCards);
-  const card = state.currentQuestionCard;
-
-  appEl.innerHTML = `
-    <div class="space-y-3">
-      ${renderLakeTrackComponent()}
-
-      <div class="bg-slate-800 border border-slate-700 p-5 rounded-3xl shadow-xl space-y-4">
-        <div class="flex items-center justify-between border-b border-slate-700 pb-3">
-          <div class="text-xs">
-            <span class="text-emerald-400 font-bold">ヒント ${state.hintRound} / 5回目</span>
-            <span class="text-slate-400">（質問者: ${curIdx + 1} / ${queue.length}人）</span>
-          </div>
-          ${(isWitness || isInsider) ? `
-            <div class="text-xs bg-amber-950 text-amber-300 border border-amber-700 px-2 py-0.5 rounded-full font-bold">
-              正体: ${escapeHtml(state.secretWord)}
-            </div>
-          ` : ''}
-        </div>
-
-        <!-- ステップ1: 質問者が3枚から1枚選んで共有する（ボタン1回目） -->
-        ${state.phase === 'QUESTION_CHOOSE' ? `
-          ${isMyTurn ? `
-            <div class="space-y-3">
-              <div class="text-center">
-                <span class="text-xs font-bold text-emerald-400">あなたの質問番です！</span>
-                <p class="text-xs text-slate-400 mt-0.5">3枚の中から使うカードを1枚選んでください</p>
-              </div>
-
-              <!-- 3枚の候補 -->
-              <div class="space-y-2">
-                ${threeCards.map((c, idx) => `
-                  <button onclick="selectCardOption(${idx})" 
-                    class="w-full p-3 rounded-2xl border text-left transition ${
-                      localSelectedCardIndex === idx 
-                        ? 'border-amber-400 bg-amber-950/40 ring-2 ring-amber-500/50 shadow-md' 
-                        : 'border-slate-700 bg-slate-900/80 hover:bg-slate-800'
-                    }">
-                    <div class="flex items-center justify-between">
-                      <span class="text-xs font-bold ${c.badgeColor} px-2 py-0.5 rounded-full border">
-                        ${c.categoryName}
-                      </span>
-                      ${localSelectedCardIndex === idx ? '<span class="text-xs text-amber-400 font-black">選択中 ✓</span>' : ''}
-                    </div>
-                    <div class="text-base font-black text-slate-100 mt-1 flex items-center gap-1.5">
-                      <span>${c.icon}</span>
-                      <span>${c.attrName}</span>
-                    </div>
-                    <p class="text-[11px] text-slate-400 mt-0.5">${c.desc}</p>
-                  </button>
-                `).join('')}
-              </div>
-
-              <!-- ボタン1回目 -->
-              <div class="pt-2">
-                <button onclick="handleShareSelectedCard()" class="w-full bg-emerald-600 hover:bg-emerald-500 active:scale-95 text-white font-black py-3.5 rounded-xl shadow-lg text-sm">
-                  📢 このカードで質問する（みんなに共有）
-                </button>
-              </div>
-            </div>
-          ` : `
-            <div class="text-center py-6 space-y-2">
-              <div class="text-3xl animate-bounce">🎴</div>
-              <p class="text-sm font-bold text-slate-300">${escapeHtml(askerName)} が質問カードを選択中...</p>
-              <p class="text-xs text-slate-500">決定されると選ばれたカードが画面と表に共有されます</p>
-              ${(isHost || isWitness) ? `
-                <div class="pt-2">
-                  <button onclick="handleShareSelectedCard(0)" class="text-[11px] text-slate-500 hover:text-amber-400 underline">
-                    ⏩ 代わりに決定して進める
-                  </button>
-                </div>
-              ` : ''}
-            </div>
-          `}
-        ` : ''}
-
-        <!-- ステップ2: 全員に選ばれたカードが標準サイズで表示され、口頭でやり取り中 -->
-        ${state.phase === 'QUESTION_ORAL' ? `
-          <div class="space-y-4">
-            <div class="bg-slate-900/90 border border-slate-700 p-4 rounded-2xl text-center space-y-1.5 shadow-md">
-              <span class="text-xs px-2.5 py-0.5 rounded-full border font-bold ${card?.badgeColor || ''}">
-                ${card?.categoryName}
-              </span>
-              <div class="text-2xl font-black text-slate-100 mt-1 flex items-center justify-center gap-1.5">
-                <span>${card?.icon || '🎴'}</span>
-                <span>${card?.attrName || ''}</span>
-              </div>
-              <p class="text-xs text-slate-400 whitespace-pre-line leading-relaxed pt-1">${card?.desc || ''}</p>
-            </div>
-
-            <div class="bg-slate-950/60 border border-slate-800 p-4 rounded-xl text-center space-y-3">
-              <div class="text-xs text-amber-300 font-bold">【口頭で質問＆回答タイム】</div>
-              <p class="text-xs text-slate-300 leading-relaxed">
-                ${isMyTurn ? 
-                  '目撃者へ口頭で質問してください！目撃者の口頭回答を聞いたら、下のボタンを押して次の人へ交代します。' : 
-                  `${escapeHtml(askerName)} が目撃者に口頭で質問しています。やり取りを聞いて推理に役立てましょう！`}
-              </p>
-
-              <!-- ボタン2回目 -->
-              ${isMyTurn ? `
-                <button onclick="handleFinishQuestionTurn()" class="w-full bg-emerald-600 hover:bg-emerald-500 active:scale-95 text-white font-black py-3.5 rounded-xl shadow-lg text-sm">
-                  ✓ 質問完了！（次の人に交代）
-                </button>
-              ` : `
-                <div class="text-xs text-slate-500 animate-pulse py-1">質問者の完了操作を待機中...</div>
-                ${(isHost || isWitness) ? `
-                  <button onclick="handleFinishQuestionTurn()" class="text-[11px] text-slate-500 hover:text-amber-400 underline pt-1">
-                    ⏩ スキップして次の人に交代
-                  </button>
-                ` : ''}
-              `}
-            </div>
-          </div>
-        ` : ''}
-      </div>
-
-      <!-- 2つの取材ログ（常時表示） -->
-      ${renderInvestigationLogComponent()}
-    </div>
-  `;
-}
-
-function selectCardOption(idx) {
-  localSelectedCardIndex = idx;
-  render();
-}
-
-/**
- * ボタン1回目: カードを決定し、全員に共有 ＆ 上の表にリアルタイム登録
- */
-function handleShareSelectedCard(forceIdx = null) {
-  const threeCards = toArray(roomData.state?.threeCards);
-  const chosenIdx = forceIdx !== null ? forceIdx : localSelectedCardIndex;
-  const selectedCard = threeCards[chosenIdx] || threeCards[0] || FREE_CARD;
-  const curHintRound = Number(roomData.state?.hintRound) || 1;
-  const queue = toArray(roomData.state?.questionQueue);
-  const curIdx = Number(roomData.state?.currentQuestionIndex) || 0;
-  const askerId = queue[curIdx] || myPlayerId;
-
-  // 上の表（cardHistory）にリアルタイムで即座に追加！
-  const updates = {};
-  updates['state/phase'] = 'QUESTION_ORAL';
-  updates['state/currentQuestionCard'] = selectedCard;
-  updates[`state/cardHistory/${curHintRound}/${askerId}`] = selectedCard;
-
-  roomRef.update(updates);
-}
-
-/**
- * ボタン2回目: 質問終了して交代
- */
-function handleFinishQuestionTurn() {
-  const queue = toArray(roomData.state?.questionQueue);
-  const curIdx = Number(roomData.state?.currentQuestionIndex) || 0;
-  const nextIdx = curIdx + 1;
-  const isEnd = nextIdx >= queue.length;
-  const currentCard = roomData.state?.currentQuestionCard || FREE_CARD;
-
-  if (isEnd) {
-    localTyping.inference = '';
-    roomRef.child('state').update({
-      phase: 'INFERENCE_INPUT',
-      inferences: {},
-      lastUsedCard: currentCard,
-      currentQuestionCard: null
-    });
-  } else {
-    const drawn = drawThreeCards(roomData.state?.markedDeck || []);
-    localSelectedCardIndex = 0;
-    roomRef.child('state').update({
-      phase: 'QUESTION_CHOOSE',
-      currentQuestionIndex: nextIdx,
-      threeCards: drawn.cards,
-      markedDeck: drawn.deck,
-      lastUsedCard: currentCard,
-      currentQuestionCard: null
-    });
-  }
-}
-
-/**
- * 5. 個人推理入力画面
- */
-function renderInferenceInputScreen() {
-  const isWitness = roomData.state.witnessId === myPlayerId;
-  const isInsider = roomData.mode === 'INSIDER' && roomData.state.insiderId === myPlayerId;
-  const reporters = Object.keys(roomData.players).filter(id => id !== roomData.state.witnessId);
-  const submittedCount = Object.keys(roomData.state.inferences || {}).length;
-  const hasSubmitted = !!roomData.state.inferences?.[myPlayerId];
-
-  appEl.innerHTML = `
-    <div class="space-y-3">
-      ${renderLakeTrackComponent()}
-
-      <div class="bg-slate-800 border border-slate-700 p-5 rounded-3xl shadow-xl space-y-4 text-center">
-        <div>
-          <span class="text-xs text-emerald-400 font-bold">ヒント ${roomData.state.hintRound} / 5回目 推理タイム</span>
-          <h3 class="text-lg font-black text-slate-100 mt-1">正体だと思うものを推理！</h3>
-          <p class="text-xs text-slate-400 mt-1">記者全員が送信するまで回答は伏せられます</p>
-          ${isInsider ? `
-            <div class="text-xs bg-purple-950/80 text-purple-300 border border-purple-700 px-3 py-1 rounded-full font-bold inline-block mt-2">
-              正体: ${escapeHtml(roomData.state.secretWord)}
-            </div>
-          ` : ''}
-        </div>
-
-        ${isWitness ? `
-          <div class="py-6 bg-slate-900/60 rounded-2xl border border-amber-600/50 space-y-2">
-            <span class="text-2xl">👀</span>
-            <p class="text-sm font-bold text-amber-300">あなたは目撃者です</p>
-            <p class="text-xs text-slate-400">記者たちの推理入力を待っています。<br>（目撃者の入力は不要です）</p>
-            <p id="inferenceWaitingText" class="text-xs text-emerald-400 font-mono font-bold pt-2">
-              待機中 (${submittedCount} / ${reporters.length}人完了)
-            </p>
-          </div>
-        ` : `
-          ${!hasSubmitted ? `
-            <div class="space-y-3 pt-1">
-              <input id="inputInferenceText" type="text" maxlength="20" 
-                value="${escapeHtml(localTyping.inference)}"
-                oninput="localTyping.inference = this.value"
-                placeholder="あなたの推理（例: バナナ、タイヤ）" 
-                class="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-3 text-sm text-center focus:border-emerald-500 outline-none">
-              
-              <button onclick="handleSubmitInference()" class="w-full bg-sky-600 hover:bg-sky-500 active:scale-95 text-white font-bold py-3.5 rounded-xl shadow-lg">
-                推理を確定して送信
-              </button>
-            </div>
-          ` : `
-            <div class="py-6 bg-slate-900/60 rounded-2xl border border-slate-700/60 space-y-2">
-              <div class="text-3xl text-emerald-400">✓</div>
-              <p class="text-sm font-bold text-slate-200">あなたの推理を送信しました</p>
-              <p id="inferenceWaitingText" class="text-xs text-slate-400">他の記者の入力を待機中 (${submittedCount} / ${reporters.length}人完了)</p>
-            </div>
-          `}
-        `}
-      </div>
-
-      <!-- 2つの取材ログ（常時表示） -->
-      ${renderInvestigationLogComponent()}
-    </div>
-  `;
-}
-
-function updateInferenceWaitingStatus() {
-  const el = document.getElementById('inferenceWaitingText');
-  if (el && roomData) {
-    const reporters = Object.keys(roomData.players).filter(id => id !== roomData.state.witnessId);
-    const submittedCount = Object.keys(roomData.state.inferences || {}).length;
-    el.textContent = `待機中 (${submittedCount} / ${reporters.length}人完了)`;
-  }
-}
-
-/**
- * 6. 推理一斉公開 ＆ 判定
- */
-function renderInferenceJudgeScreen() {
-  const isWitness = roomData.state.witnessId === myPlayerId;
-  const inferences = roomData.state.inferences || {};
-
-  let listHtml = Object.entries(inferences).map(([pid, inf]) => {
-    const pName = roomData.players[pid]?.name || '隊員';
-    const isMe = pid === myPlayerId;
-    const isCorrect = inf.isCorrect;
-    const isClosest = inf.isClosest;
-
-    return `
-      <div class="p-3 bg-slate-900/80 border ${isClosest ? 'border-amber-500 bg-amber-950/40 shadow-md shadow-amber-950/30' : 'border-slate-700'} rounded-2xl flex items-center justify-between gap-2">
-        <div class="flex-1 min-w-0">
-          <div class="flex items-center gap-1.5">
-            <span class="text-xs font-bold ${isMe ? 'text-emerald-300' : 'text-slate-300'} truncate">${escapeHtml(pName)}</span>
-            ${isClosest ? '<span class="text-[10px] bg-amber-500 text-slate-950 px-1.5 py-0.5 rounded font-black animate-pulse">最接近!</span>' : ''}
-          </div>
-          <div class="text-base font-extrabold text-slate-100 mt-0.5 truncate">${escapeHtml(inf.text)}</div>
-        </div>
-
-        <div class="flex items-center gap-1">
-          ${isWitness ? `
-            <button onclick="toggleJudgeCorrect('${pid}', true)" class="w-9 h-9 rounded-xl border font-bold text-sm transition ${isCorrect === true ? 'bg-emerald-600 border-emerald-400 text-white shadow-lg' : 'bg-slate-800 border-slate-700 text-slate-400'}">⭕</button>
-            <button onclick="toggleJudgeCorrect('${pid}', false)" class="w-9 h-9 rounded-xl border font-bold text-sm transition ${isCorrect === false ? 'bg-rose-600 border-rose-400 text-white shadow-lg' : 'bg-slate-800 border-slate-700 text-slate-400'}">❌</button>
-            <button onclick="setClosestAnswer('${pid}')" class="px-2 py-2 rounded-xl border text-[11px] font-bold transition ${isClosest ? 'bg-amber-500 border-amber-300 text-slate-950 shadow-md' : 'bg-slate-800 border-slate-700 text-slate-400'}">最接近</button>
-          ` : `
-            ${isClosest ? '<span class="text-xs bg-amber-500/20 text-amber-300 border border-amber-500/40 px-2.5 py-1 rounded-xl font-black">最接近！</span>' : ''}
-          `}
-        </div>
-      </div>
-    `;
-  }).join('');
-
-  appEl.innerHTML = `
-    <div class="space-y-3">
-      ${renderLakeTrackComponent()}
-
-      <div class="bg-slate-800 border border-slate-700 p-5 rounded-3xl shadow-xl space-y-4">
-        <div class="text-center border-b border-slate-700 pb-3">
-          <span class="text-xs text-emerald-400 font-bold">ヒント ${roomData.state.hintRound} / 5回目 推理一斉公開</span>
-          <h3 class="text-base font-black text-slate-100 mt-1">
-            ${isWitness ? '正誤(⭕/❌)と最接近を判定してください' : '目撃者の判定を待っています'}
-          </h3>
-          ${isWitness ? `<div class="text-xs text-amber-300 mt-1">※正解: <b>${escapeHtml(roomData.state.secretWord)}</b>（⭕❌は記者には見えません）</div>` : ''}
-        </div>
-
-        <div class="space-y-2 max-h-60 overflow-y-auto custom-scrollbar">
-          ${listHtml}
-        </div>
-
-        ${isWitness ? `
-          <button onclick="finishJudging()" class="w-full bg-emerald-600 hover:bg-emerald-500 active:scale-95 text-white font-black py-3.5 rounded-xl transition text-sm">
-            判定を確定する
-          </button>
-        ` : ''}
-      </div>
-
-      <!-- 2つの取材ログ（常時表示） -->
-      ${renderInvestigationLogComponent()}
-    </div>
-  `;
-}
-
-/**
- * 7. ボート移動画面
- */
-function renderShipMoveScreen() {
-  const isWitness = roomData.state.witnessId === myPlayerId;
-  const currentPos = Number(roomData.state.boatPos) || 0;
-
-  appEl.innerHTML = `
-    <div class="space-y-3">
-      ${renderLakeTrackComponent()}
-
-      <div class="bg-slate-800 border border-slate-700 p-5 rounded-3xl shadow-xl space-y-4 text-center">
-        <div>
-          <span class="text-xs text-emerald-400 font-bold">ボート移動フェーズ</span>
-          <h3 class="text-base font-black text-slate-100 mt-1">
-            ${isWitness ? '出た推理に合わせてボートを動かしてください' : '目撃者がボートの距離を調整中...'}
-          </h3>
-          <p class="text-xs text-slate-400 mt-1">
-            ${isWitness ? '良い推理があれば近づけ、的外れなら離します' : 'ボートが近づくほど正解に近づいています！'}
-          </p>
-        </div>
-
-        ${isWitness ? `
-          <div class="space-y-3 py-1">
-            <div class="grid grid-cols-2 gap-2">
-              <button onclick="handleAdjustBoat(-1)" ${currentPos <= 0 ? 'disabled' : ''} class="p-3 bg-slate-900 border border-slate-700 rounded-xl font-bold text-xs hover:bg-slate-700 disabled:opacity-40">
-                ◀ 1マス離す
-              </button>
-              <button onclick="handleAdjustBoat(1)" ${currentPos >= 10 ? 'disabled' : ''} class="p-3 bg-sky-900/60 border border-sky-600 rounded-xl font-bold text-xs hover:bg-sky-800 disabled:opacity-40 text-sky-200">
-                1マス近づける ▶
-              </button>
-            </div>
-
-            <div class="grid grid-cols-2 gap-2">
-              <button onclick="handleAdjustBoat(-2)" ${currentPos <= 0 ? 'disabled' : ''} class="p-2.5 bg-slate-950 border border-slate-800 rounded-xl font-bold text-[11px] text-slate-400 hover:bg-slate-800 disabled:opacity-40">
-                ⏪ 2マス離す
-              </button>
-              <button onclick="handleAdjustBoat(2)" ${currentPos >= 10 ? 'disabled' : ''} class="p-2.5 bg-sky-950 border border-sky-700 rounded-xl font-bold text-[11px] text-sky-300 hover:bg-sky-900 disabled:opacity-40">
-                2マス近づける ⏩
-              </button>
-            </div>
-
-            <button onclick="confirmBoatMoveAndProceed()" class="w-full mt-2 bg-emerald-600 hover:bg-emerald-500 active:scale-95 text-white font-black py-3.5 rounded-xl shadow-lg text-sm">
-              ボートの位置を確定して次のヒントへ
-            </button>
-          </div>
-        ` : `
-          <div class="py-8 text-center text-slate-400 text-sm animate-pulse">目撃者の操舵を待機中 ⛵</div>
-        `}
-      </div>
-
-      <!-- 2つの取材ログ（常時表示） -->
-      ${renderInvestigationLogComponent()}
-    </div>
-  `;
-}
-
-/**
- * 8. スクープ会議（正解者投票）
- */
-function renderScoopVoteGuesserScreen() {
-  const isWitness = roomData.state.witnessId === myPlayerId;
-  const myVote = roomData.state.guesserVotes?.[myPlayerId];
-  const reporters = Object.keys(roomData.players).filter(pid => pid !== roomData.state.witnessId);
-  const votedCount = Object.keys(roomData.state.guesserVotes || {}).length;
-
-  appEl.innerHTML = `
-    <div class="space-y-3">
-      ${renderLakeTrackComponent()}
-
-      <div class="bg-slate-800 border border-amber-500/80 p-6 rounded-3xl shadow-2xl space-y-5 text-center">
-        <div class="space-y-1">
-          <span class="text-4xl animate-bounce inline-block">📢 ⛵ 🦕</span>
-          <h2 class="text-2xl font-black text-amber-300">ネッシー・スクープ会議！</h2>
-          <p class="text-xs text-slate-300">誰かがズバリ正解を出しました！ボートは湖に到達！</p>
-        </div>
-
-        <div class="bg-slate-900/90 p-4 rounded-2xl border border-slate-700 text-left space-y-1.5">
-          <span class="text-xs font-bold text-amber-400">記者全員で「せーの」で投票！</span>
-          <p class="text-xs text-slate-300 leading-relaxed">
-            記者同士で口頭で話し合ってください。<br>
-            「誰の答えが本物の正解だと思うか」を予想して1人に投票してください（自分に投票してもOK）。
-          </p>
-        </div>
-
-        ${!isWitness ? `
-          ${!myVote ? `
-            <div class="space-y-2 text-left">
-              <label class="block text-xs font-bold text-slate-300 mb-1">正解を言ったと思う記者を選択:</label>
-              <div class="grid grid-cols-1 gap-2">
-                ${reporters.map(pid => {
-                  const infText = roomData.state.inferences?.[pid]?.text || '';
-                  return `
-                    <button onclick="handleSubmitGuesserVote('${pid}')" 
-                      class="p-3 bg-slate-900 hover:bg-emerald-950 border border-slate-700 hover:border-emerald-500 rounded-xl font-bold text-sm text-slate-200 transition text-left flex justify-between items-center">
-                      <div>
-                        <span class="text-xs text-slate-400 block">${escapeHtml(roomData.players[pid].name)}</span>
-                        <span class="text-emerald-300 text-base font-black">「${escapeHtml(infText)}」</span>
-                      </div>
-                      <span class="text-xs text-amber-400 font-bold">投票 ➔</span>
-                    </button>
-                  `;
-                }).join('')}
-              </div>
-            </div>
-          ` : `
-            <div class="py-6 bg-slate-900/60 rounded-2xl border border-slate-700/60 space-y-2">
-              <div class="text-3xl text-emerald-400">✓</div>
-              <p class="text-sm font-bold text-slate-200">投票を完了しました</p>
-              <p class="text-xs text-slate-400">他の記者の投票を待機中 (${votedCount} / ${reporters.length}人)</p>
-            </div>
-          `}
-        ` : `
-          <div class="py-6 bg-slate-900/60 rounded-2xl border border-slate-700/60 space-y-2">
-            <div class="text-2xl animate-spin">⏳</div>
-            <p class="text-sm font-bold text-slate-300">記者たちがスクープ会議中...</p>
-            <p class="text-xs text-slate-400">目撃者は会議を見守ってください (${votedCount} / ${reporters.length}人投票済)</p>
-          </div>
-        `}
-      </div>
-
-      <!-- 2つの取材ログ（常時表示） -->
-      ${renderInvestigationLogComponent()}
-    </div>
-  `;
-}
-
-/**
- * 9. 正解者投票結果
- */
-function renderScoopResultGuesserScreen() {
-  const isHost = roomData.hostId === myPlayerId;
-  const votes = roomData.state.guesserVotes || {};
-  const reporters = Object.keys(roomData.players).filter(pid => pid !== roomData.state.witnessId);
-  const correctPids = Object.entries(roomData.state.inferences || {})
-    .filter(([_, inf]) => inf.isCorrect)
-    .map(([pid]) => pid);
-
-  const voteCounts = {};
-  reporters.forEach(pid => voteCounts[pid] = 0);
-  Object.values(votes).forEach(target => {
-    voteCounts[target] = (voteCounts[target] || 0) + 1;
-  });
-
-  let correctTargetVotes = 0;
-  Object.entries(votes).forEach(([voter, target]) => {
-    if (correctPids.includes(target)) correctTargetVotes++;
-  });
-
-  const threshold = Math.floor(reporters.length / 2) + 1;
-  const isGuesserIdentified = correctTargetVotes >= threshold;
-
-  appEl.innerHTML = `
-    <div class="space-y-3">
-      ${renderLakeTrackComponent()}
-
-      <div class="bg-slate-800 border border-slate-700 p-6 rounded-3xl shadow-xl space-y-5 text-center">
-        <div>
-          <span class="text-xs font-bold text-emerald-400">スクープ会議 投票結果</span>
-          <h2 class="text-xl font-black text-slate-100 mt-1">誰が正解を当てていたか？</h2>
-        </div>
-
-        <div class="space-y-2 text-left">
-          ${reporters.map(pid => {
-            const isActuallyCorrect = correctPids.includes(pid);
-            const cnt = voteCounts[pid] || 0;
-            return `
-              <div class="p-3 bg-slate-900 border ${isActuallyCorrect ? 'border-amber-500 bg-amber-950/20' : 'border-slate-800'} rounded-xl flex justify-between items-center">
-                <div>
-                  <div class="flex items-center gap-1.5">
-                    <span class="font-bold text-sm text-slate-200">${escapeHtml(roomData.players[pid].name)}</span>
-                    ${isActuallyCorrect ? '<span class="text-[10px] bg-amber-500 text-slate-950 px-1.5 py-0.5 rounded font-black">正解者！⭕</span>' : ''}
-                  </div>
-                  <div class="text-xs text-slate-400 mt-0.5">推理: 「${escapeHtml(roomData.state.inferences[pid]?.text || '')}」</div>
-                </div>
-                <div class="font-mono font-bold text-base text-amber-400">${cnt} 票</div>
-              </div>
-            `;
-          }).join('')}
-        </div>
-
-        <div class="p-4 rounded-2xl border text-center ${
-          isGuesserIdentified ? 'bg-emerald-950/80 border-emerald-500 text-emerald-200' : 'bg-rose-950/80 border-rose-500 text-rose-200'
-        }">
-          <div class="text-2xl font-black mb-1">
-            ${isGuesserIdentified ? '🎉 正解者の特定に成功！' : '😱 正解者を特定できず！'}
-          </div>
-          <p class="text-xs opacity-90 leading-relaxed">
-            正解者への投票数: <b>${correctTargetVotes}票</b> / 必要数: <b>${threshold}票</b>（記者の半数超）<br>
-            ${isGuesserIdentified ? 
-              (roomData.mode === 'INSIDER' ? '第2段階：インサイダー当て投票へ進みます！' : '記者チームの勝利です！') : 
-              '正体は永遠の謎となり、目撃者の勝利です！'}
-          </p>
-        </div>
-
-        ${isHost ? `
-          <button onclick="handleProceedAfterGuesserVote(${isGuesserIdentified})" class="w-full bg-emerald-600 hover:bg-emerald-500 active:scale-95 text-white font-black py-3.5 rounded-xl shadow-lg text-sm">
-            ${roomData.mode === 'INSIDER' && isGuesserIdentified ? 'インサイダー投票へ進む ➔' : 'ラウンド結果へ進む ➔'}
-          </button>
-        ` : `
-          <div class="text-xs text-slate-400 animate-pulse">隊長が次へ進めるのを待機中...</div>
-        `}
-      </div>
-
-      <!-- 2つの取材ログ（常時表示） -->
-      ${renderInvestigationLogComponent()}
-    </div>
-  `;
-}
-
-/**
- * 10. インサイダー投票
- */
-function renderInsiderVoteScreen() {
-  const myVote = roomData.state.votes?.[myPlayerId];
-  const votedCount = Object.keys(roomData.state.votes || {}).length;
-  const totalPlayers = Object.keys(roomData.players).length;
-  const candidates = Object.keys(roomData.players).filter(pid => pid !== roomData.state.witnessId);
-
-  appEl.innerHTML = `
-    <div class="bg-slate-800 border border-purple-500/80 p-6 rounded-3xl shadow-2xl space-y-5 text-center">
-      <div class="space-y-1">
-        <span class="text-4xl inline-block">🕵️🔍</span>
-        <h2 class="text-xl font-black text-purple-300">インサイダーを暴け！</h2>
-        <p class="text-xs text-slate-300">裏切り者は誰だ？ 秘密投票を行ってください。</p>
-      </div>
-
-      ${!myVote ? `
-        <div class="space-y-2 text-left">
-          <label class="block text-xs font-bold text-slate-300 mb-2">インサイダーだと思う人物に投票:</label>
-          <div class="grid grid-cols-1 gap-2">
-            ${candidates.map(pid => `
-              <button onclick="handleSubmitInsiderVote('${pid}')" 
-                class="p-3 bg-slate-900 hover:bg-purple-950 border border-slate-700 hover:border-purple-500 rounded-xl font-bold text-sm text-slate-200 transition text-left flex justify-between items-center">
-                <span>🕵️ ${escapeHtml(roomData.players[pid].name)}</span>
-                <span class="text-xs text-purple-400">投票 ➔</span>
-              </button>
-            `).join('')}
-          </div>
-        </div>
-      ` : `
-        <div class="py-8 bg-slate-900/60 rounded-2xl border border-slate-700/60 space-y-2">
-          <div class="text-3xl text-purple-400">✓</div>
-          <p class="text-sm font-bold text-slate-200">投票を受け付けました</p>
-          <p class="text-xs text-slate-400">全員の完了待機中 (${votedCount} / ${totalPlayers})</p>
-        </div>
-      `}
-    </div>
-  `;
-}
-
-/**
- * 11. インサイダー開票
- */
-function renderInsiderRevealScreen() {
-  const isWitness = roomData.state.witnessId === myPlayerId;
-  const votes = roomData.state.votes || {};
-  const voteCounts = {};
-  Object.values(votes).forEach(target => { voteCounts[target] = (voteCounts[target] || 0) + 1; });
-
-  let maxV = -1;
-  Object.values(voteCounts).forEach(v => { if (v > maxV) maxV = v; });
-  const topCandidates = Object.keys(voteCounts).filter(pid => voteCounts[pid] === maxV);
-  const isTie = topCandidates.length > 1;
-
-  appEl.innerHTML = `
-    <div class="bg-slate-800 border border-purple-500 p-6 rounded-3xl shadow-xl space-y-5">
-      <div class="text-center">
-        <h2 class="text-lg font-black text-purple-300">インサイダー投票結果</h2>
-      </div>
-
-      <div class="space-y-2">
-        ${Object.entries(voteCounts).map(([pid, cnt]) => `
-          <div class="p-3 bg-slate-900 border border-slate-700 rounded-xl flex justify-between items-center">
-            <span class="font-bold text-sm text-slate-200">${escapeHtml(roomData.players[pid]?.name || '')}</span>
-            <span class="font-mono font-bold text-purple-400 text-sm">${cnt} 票</span>
-          </div>
-        `).join('')}
-      </div>
-
-      ${isTie ? `
-        <div class="p-4 bg-amber-950/60 border border-amber-600 rounded-2xl text-xs space-y-2">
-          <span class="font-bold text-amber-300">⚠️ 最多得票が同数です！</span>
-          <p class="text-slate-300">話し合いを行い、最終的に目撃者が1名を指名してください。</p>
-          ${isWitness ? `
-            <div class="grid grid-cols-1 gap-2 pt-2">
-              ${topCandidates.map(pid => `
-                <button onclick="handleResolveInsiderRound('${pid}')" class="p-2.5 bg-amber-600 text-slate-950 font-bold rounded-lg text-xs">
-                  ${escapeHtml(roomData.players[pid]?.name || '')} を指名する
-                </button>
-              `).join('')}
-            </div>
-          ` : '<p class="text-slate-400 text-center py-2 animate-pulse">目撃者の指名待機中...</p>'}
-        </div>
-      ` : `
-        ${isWitness ? `
-          <button onclick="handleResolveInsiderRound('${topCandidates[0]}')" class="w-full bg-purple-600 hover:bg-purple-500 text-white font-black py-3 rounded-xl transition text-sm">
-            結果を確定して終了へ
-          </button>
-        ` : '<p class="text-center text-xs text-slate-400 animate-pulse">目撃者が確認中...</p>'}
-      `}
-    </div>
-  `;
-}
-
-/**
- * 12. ラウンド結果
- */
-function renderRoundResultScreen() {
-  const isHost = roomData.hostId === myPlayerId;
-  const state = roomData.state;
-  const res = state.roundSummary;
-  const isNormal = roomData.mode === 'NORMAL';
-  const playedCount = toArray(state.playedWitnesses).length;
-  const totalPlayers = Object.keys(roomData.players).length;
-
-  appEl.innerHTML = `
-    <div class="bg-slate-800 border border-slate-700 p-6 rounded-3xl shadow-xl space-y-5 text-center">
-      <div>
-        <span class="text-xs text-emerald-400 font-bold">第 ${playedCount} 人目 調査終了</span>
-        <h2 class="text-xl font-black text-slate-100 mt-1">結果発表</h2>
-      </div>
-
-      <div class="bg-slate-900/80 p-4 rounded-2xl border border-slate-700 text-left text-xs space-y-2">
-        <div class="flex justify-between">
-          <span class="text-slate-400">ネッシーの正体:</span>
-          <span class="font-bold text-amber-400 text-sm">${escapeHtml(state.secretWord)}</span>
-        </div>
-        ${roomData.mode === 'INSIDER' ? `
-          <div class="flex justify-between">
-            <span class="text-slate-400">インサイダー:</span>
-            <span class="font-bold text-purple-400 text-sm">${escapeHtml(roomData.players[state.insiderId]?.name || 'なし')}</span>
-          </div>
-        ` : ''}
-        <div class="pt-2 border-t border-slate-800 text-slate-300">${res?.reason || ''}</div>
-      </div>
-
-      <div class="space-y-2 text-left">
-        <span class="text-xs font-bold text-slate-300">${isNormal ? '現在の累計正解数:' : '現在の獲得得点:'}</span>
-        <div class="space-y-1.5">
-          ${Object.values(roomData.players || {}).map(p => `
-            <div class="flex justify-between items-center p-2.5 bg-slate-900 rounded-xl text-xs">
-              <span class="font-bold text-slate-200">${escapeHtml(p.name)}</span>
-              <span class="font-black text-emerald-400 font-mono text-sm">
-                ${isNormal ? `${p.correctCount || 0} 問` : `+${p.score || 0} 点`}
-              </span>
-            </div>
-          `).join('')}
-        </div>
-      </div>
-
-      ${isHost ? `
-        <button onclick="handleNextRoundOrEnd()" class="w-full bg-emerald-600 hover:bg-emerald-500 active:scale-95 text-white font-extrabold py-3.5 rounded-2xl transition shadow-lg text-sm">
-          ${playedCount >= totalPlayers ? '最終結果（ゲームセット終了）へ' : '次の目撃者へ交代して次ゲームへ'}
-        </button>
-      ` : `
-        <div class="text-xs text-slate-400 animate-pulse">隊長が次へ進めるのを待機中...</div>
-      `}
-    </div>
-  `;
-}
-
-/**
- * 13. 最終ランキング
- */
-function renderSetCompleteScreen() {
-  const isHost = roomData.hostId === myPlayerId;
-  const isNormal = roomData.mode === 'NORMAL';
-  const players = Object.values(roomData.players || {});
-  
-  if (isNormal) {
-    players.sort((a, b) => (b.correctCount || 0) - (a.correctCount || 0));
-  } else {
-    players.sort((a, b) => (b.score || 0) - (a.score || 0));
-  }
-
-  let currentRank = 1;
-  const rankedList = players.map((p, idx) => {
-    const val = isNormal ? (p.correctCount || 0) : (p.score || 0);
-    const prevVal = idx > 0 ? (isNormal ? (players[idx - 1].correctCount || 0) : (players[idx - 1].score || 0)) : null;
-    if (idx > 0 && val < prevVal) currentRank = idx + 1;
-    const isMe = p.id === myPlayerId;
-
-    return `
-      <div class="flex items-center justify-between p-3.5 rounded-2xl ${
-        currentRank === 1 ? 'bg-amber-950/40 border border-amber-500/60' :
-        isMe ? 'bg-emerald-950/40 border border-emerald-700/60' : 'bg-slate-900 border border-slate-800'
-      }">
-        <div class="flex items-center gap-3">
-          <span class="font-black text-lg w-6 text-center ${currentRank === 1 ? 'text-amber-400 text-xl' : 'text-slate-400'}">
-            ${currentRank === 1 ? '👑' : currentRank}
-          </span>
-          <span class="font-bold text-sm ${isMe ? 'text-emerald-300' : 'text-slate-200'}">${escapeHtml(p.name)}</span>
-        </div>
-        <div class="font-mono font-black text-amber-400 text-base">
-          ${val} <span class="text-xs font-normal text-slate-400">${isNormal ? '問正解' : '点'}</span>
-        </div>
-      </div>
-    `;
-  }).join('');
-
-  appEl.innerHTML = `
-    <div class="bg-slate-800 border border-slate-700 p-6 rounded-3xl shadow-2xl space-y-6 text-center">
-      <div>
-        <span class="text-5xl">🏆</span>
-        <h2 class="text-2xl font-black text-amber-300 mt-2">ゲームセット終了！</h2>
-        <p class="text-xs text-slate-400 mt-1">全員が目撃者を担当しました</p>
-      </div>
-
-      <div class="space-y-2 text-left">${rankedList}</div>
-
-      ${isHost ? `
-        <button onclick="handleStartGameSet()" class="w-full bg-emerald-600 hover:bg-emerald-500 active:scale-95 text-white font-extrabold py-3.5 rounded-2xl transition text-sm">
-          もう1セット遊ぶ
-        </button>
-      ` : ''}
-    </div>
-  `;
-}
-
-/**
- * -------------------------------------------------------------
- * ネットワーク＆ロジック操作
- * -------------------------------------------------------------
- */
-function handleCreateRoom() {
-  const name = document.getElementById('inputPlayerName').value.trim();
-  if (!name) return showToast('名前を入力してください');
-  myName = name;
-  localStorage.setItem('nessie_pname', myName);
-
-  const code = Math.random().toString(36).substring(2, 8).toUpperCase();
-  currentRoomId = code;
-  roomRef = db.ref('rooms/' + code);
-
-  roomRef.set({
-    code: code,
-    hostId: myPlayerId,
-    mode: 'NORMAL',
-    state: { phase: 'LOBBY' },
-    players: { [myPlayerId]: { id: myPlayerId, name: myName, score: 0, correctCount: 0, online: true } }
-  }).then(() => attachRoomListener()).catch(e => showToast(e.message));
-}
-
-function handleJoinRoom() {
-  const name = document.getElementById('inputPlayerName').value.trim();
-  const code = document.getElementById('inputRoomCode').value.trim().toUpperCase();
-  if (!name) return showToast('名前を入力してください');
-  if (!code || code.length !== 6) return showToast('6桁のコードを入力してください');
-
-  myName = name;
-  localStorage.setItem('nessie_pname', myName);
-  currentRoomId = code;
-  roomRef = db.ref('rooms/' + code);
-
-  roomRef.get().then(snap => {
-    if (!snap.exists()) return showToast('ルームが見つかりません');
-    const data = snap.val();
-    if (Object.keys(data.players || {}).length >= 8 && !data.players[myPlayerId]) return showToast('満員です');
-
-    roomRef.child('players/' + myPlayerId).set({
-      id: myPlayerId,
-      name: myName,
-      score: data.players?.[myPlayerId]?.score || 0,
-      correctCount: data.players?.[myPlayerId]?.correctCount || 0,
-      online: true
-    }).then(() => attachRoomListener());
-  }).catch(e => showToast(e.message));
-}
-
-function attachRoomListener() {
-  roomRef.child('players/' + myPlayerId).onDisconnect().update({ online: false });
-
-  roomRef.on('value', snap => {
-    if (!snap.exists()) {
-      showToast('ルームが解散されました');
-      currentRoomId = null; roomData = null; render(); return;
-    }
-    roomData = snap.val();
-
-    if (!roomData.players[roomData.hostId]?.online) {
-      const activeIds = Object.keys(roomData.players).filter(id => roomData.players[id].online);
-      if (activeIds.length > 0 && activeIds[0] === myPlayerId) {
-        roomRef.update({ hostId: myPlayerId });
+          <div style="font-size:13px; margin: 4px 0;">${brainIcons}</div>
+          <div style="font-size:11px; color:#64748b;">手札: ${p.cardCount}枚</div>
+        `;
+        list.appendChild(div);
+      });
+
+      const isMyTurn = st.status === 'playing' && st.players[st.currentTurn]?.id === myId;
+      const notice = document.getElementById('turnNotice');
+      if (st.status === 'ended') {
+        notice.innerText = `🏆 ゲームセット！ ホストが「もう一度全員で遊ぶ」を押すと再スタートします`;
+        notice.style.color = 'var(--primary-orange)';
+      } else if (isMyTurn) {
+        if (st.playerRemainingPlays > 1) {
+          notice.innerText = '⚠️ DOUBLE効果中！あと2枚カードを出してください';
+          notice.style.color = '#ef4444';
+        } else {
+          notice.innerText = 'あなたの手番です！カードを選んで出してください';
+          notice.style.color = 'var(--primary-blue)';
+        }
+      } else {
+        notice.innerText = '対戦相手の思考中...';
+        notice.style.color = 'var(--text-sub)';
       }
+
+      const hc = document.getElementById('handCards');
+      hc.innerHTML = '';
+      myLocalHand.forEach((c, idx) => {
+        const div = document.createElement('div');
+        div.className = `game-card ${!isMyTurn ? 'disabled' : ''}`;
+
+        let badgeCls = '';
+        if (c.t === 'div2' || c.t === 'mul2' || c.t === 'sqrt' || c.t === 'sqr') badgeCls = 'badge-calc';
+        else if (c.t === 'fever') badgeCls = 'badge-fever';
+        else if (c.t === '108') badgeCls = 'badge-danger';
+
+        const imgSrc = ASSETS.cards[c.l];
+
+        if (imgSrc) {
+          div.innerHTML = `
+            <div class="card-corner-badge ${badgeCls}">${c.l}</div>
+            <div class="card-img-square-box">
+              <img src="${imgSrc}" alt="${c.l}" class="card-inner-img" onerror="this.parentElement.innerHTML='<div class=\\'card-val\\'>${c.l}</div>';">
+            </div>
+          `;
+        } else {
+          let cl = 'card-num';
+          if (c.t === 'min') cl = 'card-minus';
+          else if (c.t === 'div2' || c.t === 'mul2' || c.t === 'sqrt' || c.t === 'sqr') cl = 'card-calc';
+          else if (c.t === 'fever') cl = 'card-fever';
+          else if (c.t !== 'num') cl = 'card-special';
+
+          div.className += ` ${cl}`;
+          div.innerHTML = `
+            <div class="card-corner-badge">${c.l}</div>
+            <div class="card-val">${c.l}</div>
+          `;
+        }
+
+        div.onclick = () => { if (isMyTurn) playCard(idx); };
+        hc.appendChild(div);
+      });
     }
-    render();
-  });
-}
-
-function setGameMode(mode) {
-  if (roomData.hostId !== myPlayerId) return;
-  roomRef.update({ mode: mode });
-}
-
-function handleStartGameSet() {
-  const pids = Object.keys(roomData.players || {});
-  if (pids.length < 4) return showToast('4人以上必要です');
-
-  const updates = {};
-  pids.forEach(pid => {
-    updates[`players/${pid}/score`] = 0;
-    updates[`players/${pid}/correctCount`] = 0;
-  });
-  roomRef.update(updates).then(() => {
-    startNewWitnessGame([]);
-  });
-}
-
-function startNewWitnessGame(playedWitnesses = []) {
-  const allPids = Object.keys(roomData.players || {});
-  const remainingWitnesses = allPids.filter(pid => !playedWitnesses.includes(pid));
-
-  if (remainingWitnesses.length === 0) {
-    roomRef.child('state').update({ phase: 'SET_COMPLETE' });
-    return;
-  }
-
-  const nextWitnessId = remainingWitnesses[Math.floor(Math.random() * remainingWitnesses.length)];
-  const newPlayedList = [...playedWitnesses, nextWitnessId];
-
-  const nonWitnesses = allPids.filter(pid => pid !== nextWitnessId);
-  const insiderId = nonWitnesses[Math.floor(Math.random() * nonWitnesses.length)];
-
-  roomRef.update({
-    'state': {
-      phase: 'SETUP',
-      hintRound: 1, // ★1回目に完全リセット！
-      playedWitnesses: newPlayedList,
-      witnessId: nextWitnessId,
-      insiderId: insiderId,
-      secretWord: '',
-      boatPos: 0,
-      markedDeck: createMarkedDeck(),
-      currentQuestionIndex: 0,
-      threeCards: [],
-      inferences: {},
-      history: [],
-      cardHistory: {}, // 上の表のログ（リアルタイム記録用）
-      guesserVotes: {},
-      votes: {}
-    }
-  });
-}
-
-function submitSetup() {
-  const word = localTyping.secretWord.trim();
-  if (!word) return showToast('正体の言葉を入力してください');
-
-  const pids = Object.keys(roomData.players || {});
-  const witnessId = roomData.state.witnessId;
-  const nonWitnesses = pids.filter(id => id !== witnessId);
-  const queue = shuffle(nonWitnesses).slice(0, Math.min(3, nonWitnesses.length));
-
-  const drawnCards = drawThreeCards(roomData.state.markedDeck || []);
-
-  localSelectedCardIndex = 0;
-  roomRef.child('state').update({
-    phase: 'QUESTION_CHOOSE',
-    secretWord: word,
-    boatPos: 0,
-    questionQueue: queue,
-    currentQuestionIndex: 0,
-    threeCards: drawnCards.cards,
-    markedDeck: drawnCards.deck,
-    currentQuestionCard: null,
-    inferences: {}
-  });
-}
-
-function drawThreeCards(deck) {
-  let curDeck = toArray(deck);
-  if (curDeck.length < 2) curDeck = createMarkedDeck();
-
-  const c1 = curDeck.pop();
-  const c2 = curDeck.pop();
-  return {
-    cards: [FREE_CARD, c1, c2],
-    deck: curDeck
-  };
-}
-
-function handleSubmitInference() {
-  const text = localTyping.inference.trim();
-  if (!text) return showToast('推理を入力してください');
-
-  roomRef.child('state/inferences/' + myPlayerId).set({
-    name: myName,
-    text: text,
-    isCorrect: null,
-    isClosest: false
-  }).then(() => {
-    roomRef.child('state/inferences').get().then(snap => {
-      const infs = snap.val() || {};
-      const reporters = Object.keys(roomData.players || {}).filter(id => id !== roomData.state.witnessId);
-      if (Object.keys(infs).length >= reporters.length) {
-        roomRef.child('state').update({ phase: 'INFERENCE_JUDGE' });
-      }
-    });
-  });
-}
-
-function toggleJudgeCorrect(targetPid, boolVal) {
-  roomRef.child(`state/inferences/${targetPid}`).update({ isCorrect: boolVal });
-}
-
-function setClosestAnswer(targetPid) {
-  const inferences = roomData.state.inferences || {};
-  const updates = {};
-  Object.keys(inferences).forEach(pid => {
-    updates[`state/inferences/${pid}/isClosest`] = (pid === targetPid);
-  });
-  roomRef.update(updates);
-}
-
-function finishJudging() {
-  const inferences = roomData.state.inferences || {};
-  const hasUnjudged = Object.values(inferences).some(inf => inf.isCorrect === null);
-  if (hasUnjudged) return showToast('全員の回答に⭕または❌をつけてください');
-
-  let closestText = '';
-  let closestName = '';
-  Object.entries(inferences).forEach(([pid, inf]) => {
-    if (inf.isClosest) {
-      closestText = inf.text;
-      closestName = roomData.players[pid]?.name || '';
-    }
-  });
-
-  const currentHistory = toArray(roomData.state?.history);
-  const newLogEntry = {
-    hintRound: roomData.state.hintRound,
-    inferences: inferences,
-    closestText: closestText,
-    closestName: closestName
-  };
-  const updatedHistory = [...currentHistory, newLogEntry];
-
-  const hasCorrect = Object.values(inferences).some(inf => inf.isCorrect === true);
-
-  if (hasCorrect) {
-    roomRef.child('state').update({
-      boatPos: 10,
-      phase: 'SCOOP_VOTE_GUESSER',
-      guesserVotes: {},
-      history: updatedHistory
-    });
-  } else {
-    roomRef.child('state').update({
-      phase: 'SHIP_MOVE',
-      history: updatedHistory
-    });
-  }
-}
-
-function handleAdjustBoat(delta) {
-  const cur = Number(roomData.state.boatPos) || 0;
-  const next = Math.max(0, Math.min(10, cur + delta));
-  roomRef.child('state/boatPos').set(next);
-}
-
-function confirmBoatMoveAndProceed() {
-  const curHintRound = Number(roomData.state.hintRound) || 1;
-
-  if (curHintRound >= 5) {
-    applyRoundResults(false, []);
-  } else {
-    const pids = Object.keys(roomData.players || {});
-    const nonWitnesses = pids.filter(id => id !== roomData.state.witnessId);
-    const queue = shuffle(nonWitnesses).slice(0, Math.min(3, nonWitnesses.length));
-    const drawn = drawThreeCards(roomData.state.markedDeck || []);
-
-    localSelectedCardIndex = 0;
-    roomRef.child('state').update({
-      phase: 'QUESTION_CHOOSE',
-      hintRound: curHintRound + 1,
-      questionQueue: queue,
-      currentQuestionIndex: 0,
-      threeCards: drawn.cards,
-      markedDeck: drawn.deck,
-      currentQuestionCard: null,
-      inferences: {}
-    });
-  }
-}
-
-function handleSubmitGuesserVote(targetPid) {
-  roomRef.child('state/guesserVotes/' + myPlayerId).set(targetPid).then(() => {
-    roomRef.child('state/guesserVotes').get().then(snap => {
-      const votes = snap.val() || {};
-      const reporterCount = Object.keys(roomData.players || {}).length - 1;
-      if (Object.keys(votes).length >= reporterCount) {
-        roomRef.child('state').update({ phase: 'SCOOP_RESULT_GUESSER' });
-      }
-    });
-  });
-}
-
-function handleProceedAfterGuesserVote(isGuesserIdentified) {
-  const correctPids = Object.entries(roomData.state.inferences || {})
-    .filter(([_, inf]) => inf.isCorrect)
-    .map(([pid]) => pid);
-
-  if (roomData.mode === 'INSIDER') {
-    if (isGuesserIdentified) {
-      roomRef.child('state').update({ phase: 'INSIDER_VOTE', votes: {} });
-    } else {
-      applyInsiderScores('GUESSER_FAILED');
-    }
-  } else {
-    applyRoundResults(isGuesserIdentified, correctPids);
-  }
-}
-
-function handleSubmitInsiderVote(targetPid) {
-  roomRef.child('state/votes/' + myPlayerId).set(targetPid).then(() => {
-    roomRef.child('state/votes').get().then(snap => {
-      const votes = snap.val() || {};
-      if (Object.keys(votes).length >= Object.keys(roomData.players).length) {
-        roomRef.child('state').update({ phase: 'INSIDER_REVEAL' });
-      }
-    });
-  });
-}
-
-function handleResolveInsiderRound(accusedPid) {
-  const actualInsiderId = roomData.state.insiderId;
-  const isInsiderCaught = (accusedPid === actualInsiderId);
-  applyInsiderScores(isInsiderCaught ? 'INSIDER_CAUGHT' : 'INSIDER_ESCAPED');
-}
-
-function applyRoundResults(isSuccess, correctPids) {
-  const updates = {};
-  const reason = isSuccess ? 
-    '記者がネッシーの正体を暴きました！（正解数を加算）' : 
-    '正体は永遠の謎となりました！（正解者なし）';
-
-  if (isSuccess) {
-    correctPids.forEach(pid => {
-      const cur = roomData.players[pid]?.correctCount || 0;
-      updates[`players/${pid}/correctCount`] = cur + 1;
-    });
-  }
-
-  updates['state/phase'] = 'ROUND_RESULT';
-  updates['state/roundSummary'] = { reason: reason };
-  roomRef.update(updates);
-}
-
-function applyInsiderScores(outcome) {
-  const actualInsiderId = roomData.state.insiderId;
-  const witnessId = roomData.state.witnessId;
-  const scores = {};
-  let reason = '';
-
-  Object.keys(roomData.players).forEach(pid => {
-    if (outcome === 'GUESSER_FAILED') {
-      scores[pid] = (pid === witnessId) ? 2 : 0;
-      reason = '正解者を特定できませんでした。（目撃者に2点）';
-    } else if (outcome === 'INSIDER_CAUGHT') {
-      if (pid === witnessId) scores[pid] = 1;
-      else if (pid === actualInsiderId) scores[pid] = 0;
-      else scores[pid] = 2;
-      reason = `インサイダー（${roomData.players[actualInsiderId]?.name}）の特定に成功！`;
-    } else {
-      if (pid === witnessId) scores[pid] = 0;
-      else if (pid === actualInsiderId) scores[pid] = 2;
-      else scores[pid] = 1;
-      reason = `インサイダー逃亡！（正解は ${roomData.players[actualInsiderId]?.name} でした）`;
-    }
-  });
-
-  const updates = {};
-  Object.entries(scores).forEach(([pid, pts]) => {
-    const cur = roomData.players[pid]?.score || 0;
-    updates[`players/${pid}/score`] = cur + pts;
-  });
-
-  updates['state/phase'] = 'ROUND_RESULT';
-  updates['state/roundSummary'] = { scores: scores, reason: reason };
-  roomRef.update(updates);
-}
-
-function handleNextRoundOrEnd() {
-  const played = toArray(roomData.state?.playedWitnesses);
-  startNewWitnessGame(played);
-}
-
-function handleLeaveRoom() {
-  if (confirm('ルームを退出しますか？')) {
-    if (roomRef && myPlayerId) roomRef.child('players/' + myPlayerId).remove();
-    currentRoomId = null; roomData = null; render();
-  }
-}
-
-function copyInviteUrl() {
-  const inviteUrl = window.location.origin + window.location.pathname + '?room=' + currentRoomId;
-  navigator.clipboard.writeText(inviteUrl).then(() => showToast('招待URLをコピーしました！')).catch(() => copyRoomCode());
-}
-
-function copyRoomCode() {
-  navigator.clipboard.writeText(currentRoomId).then(() => showToast('ルームコードをコピーしました！'));
-}
-
-function showToast(msg) {
-  const t = document.getElementById('toast');
-  t.textContent = msg;
-  t.classList.remove('opacity-0');
-  t.classList.add('opacity-100');
-  setTimeout(() => {
-    t.classList.remove('opacity-100');
-    t.classList.add('opacity-0');
-  }, 3000);
-}
-
-function escapeHtml(str) {
-  if (!str) return '';
-  return str.replace(/[&<>'"]/g, tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[tag] || tag));
-}
-
-// 起動
-render();
-</script>
+  </script>
 </body>
 </html>
